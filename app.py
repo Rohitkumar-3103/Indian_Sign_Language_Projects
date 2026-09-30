@@ -36,8 +36,14 @@ label_encoder = None
 class_metadata = {}
 extractor = None
 
+# Indian-Sign-Language-Detection-main Keras Model Integration
+import string
+KERAS_MODEL_PATH = "Indian-Sign-Language-Detection-main/model.h5"
+keras_model = None
+KERAS_CLASSES = ['1','2','3','4','5','6','7','8','9'] + list(string.ascii_uppercase)
+
 def load_artifacts():
-    global classifier, label_encoder, class_metadata
+    global classifier, label_encoder, class_metadata, keras_model
     try:
         if os.path.exists(MODEL_PATH) and os.path.exists(ENCODER_PATH):
             classifier = joblib.load(MODEL_PATH)
@@ -49,6 +55,36 @@ def load_artifacts():
                 class_metadata = data.get("metadata", {})
     except Exception as e:
         print(f"Error loading model artifacts: {e}")
+
+    # Load Keras Deep Neural Network from Indian-Sign-Language-Detection-main
+    if os.path.exists(KERAS_MODEL_PATH):
+        try:
+            from tensorflow import keras
+            keras_model = keras.models.load_model(KERAS_MODEL_PATH)
+            print(f"Loaded Keras Deep Neural Network model from {KERAS_MODEL_PATH} (35 classes).")
+        except Exception as e:
+            print(f"Notice: Keras model loading deferred: {e}")
+
+def predict_keras_landmarks(raw_pts):
+    """Predicts gesture class using the 42-dim Keras Deep Neural Network model."""
+    if keras_model is None or not raw_pts or len(raw_pts) < 21:
+        return None
+    try:
+        coords = []
+        base_x, base_y = raw_pts[0][0], raw_pts[0][1]
+        for pt in raw_pts[:21]:
+            coords.append(pt[0] - base_x)
+            coords.append(pt[1] - base_y)
+        max_val = max(map(abs, coords)) if max(map(abs, coords)) > 1e-4 else 1.0
+        norm_42 = [c / max_val for c in coords]
+        preds = keras_model.predict(np.array([norm_42], dtype=np.float32), verbose=0)[0]
+        top_idx = int(np.argmax(preds))
+        return {
+            "label": KERAS_CLASSES[top_idx],
+            "confidence": round(float(preds[top_idx]), 3)
+        }
+    except Exception as e:
+        return None
 
 # Initialize extractor and load models
 extractor = ISLFeatureExtractor(static_image_mode=False)
@@ -88,6 +124,7 @@ def api_status():
     return jsonify({
         "status": "online",
         "model_loaded": classifier is not None,
+        "keras_model_loaded": keras_model is not None,
         "num_classes": len(label_encoder.classes_) if label_encoder is not None else 0,
         "total_dataset_samples": total_samples,
         "mediapipe_ready": extractor.hands_detector is not None
@@ -348,11 +385,16 @@ def api_predict_landmarks():
             for i in top_indices if probs[i] > 0.01
         ]
 
+        keras_res = None
+        if hand1_pts is not None and len(hand1_pts) >= 21:
+            keras_res = predict_keras_landmarks(hand1_pts)
+
         return jsonify({
             "detected": True,
             "prediction": predicted_label,
             "confidence": round(confidence, 3),
             "top_k": top_k,
+            "keras_model": keras_res,
             "metadata": ISL_CLASSES.get(predicted_label, {})
         })
 

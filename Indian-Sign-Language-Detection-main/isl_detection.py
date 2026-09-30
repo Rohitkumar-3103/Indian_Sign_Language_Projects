@@ -7,8 +7,10 @@ import numpy as np
 import pandas as pd
 import string
 
+import os
 # load the saved model from file
-model = keras.models.load_model("model.h5")
+MODEL_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "model.h5")
+model = keras.models.load_model(MODEL_FILE)
 
 mp_drawing = mp.solutions.drawing_utils
 mp_drawing_styles = mp.solutions.drawing_styles

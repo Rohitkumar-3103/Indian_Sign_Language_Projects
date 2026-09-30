@@ -88,11 +88,18 @@ Indian_Sign_Language_Projects/
 ├── static/
 │   ├── css/
 │   │   └── style.css           # Glassmorphic dark-mode CSS design system
-│   └── js/
-│       └── app.js              # Live webcam detection, speech synthesis, dataset studio
+│   ├── js/
+│   │   └── app.js              # Live webcam detection, speech synthesis, dataset studio
+│   └── assets/signs/           # 45 visual sign cards & user-uploaded ISL images
 ├── templates/
-│   └── index.html              # Modern 4-tab Single Page Application
-├── Images/                     # Raw image storage organized by A-Z, 0-9, Words
+│   └── index.html              # Modern 6-tab Single Page Application
+├── Images/                     # Real user-uploaded ISL images (A-Z, 0-9)
+├── Indian-Sign-Language-Detection-main/ # Subproject & Pretrained Keras Model
+│   ├── model.h5                # 35-class Keras Feedforward Neural Network (954k params)
+│   ├── keypoint.csv            # 42-point landmark dataset (7,669 samples)
+│   ├── isl_detection.py        # Standalone OpenCV webcam detector
+│   ├── run_standalone.bat      # 1-click standalone desktop launcher
+│   └── ISL_classifier.ipynb    # Training notebook
 └── Research_Papers/            # 16 research papers on ISL detection
 ```
 
@@ -100,41 +107,32 @@ Indian_Sign_Language_Projects/
 
 ## 🚀 Quick Start Guide
 
-### 1. Launch the Application
+### 1. Launch the Main Web Application
 Simply double-click:
 ```bat
 run.bat
 ```
 Or run in your terminal:
 ```bash
-py -3.10 app.py
+py -3.12 app.py
 ```
+Open **http://127.0.0.1:5000** in your web browser.
 
-### 2. Open in Browser
-Navigate to:
+### 2. Launch Standalone OpenCV Desktop Detector (Subproject)
+If you wish to run the standalone OpenCV camera window from `Indian-Sign-Language-Detection-main`:
+```bat
+Indian-Sign-Language-Detection-main\run_standalone.bat
 ```
-http://127.0.0.1:5000
-```
-
-### 3. Using the Live Translator
-1. Click **"Start Camera"** to grant webcam access.
-2. Show any ISL sign (e.g. **'A'**, **'V'**, **'L'**, **'1'**, **'HELLO'**, **'THANK_YOU'**).
-3. The HUD displays real-time prediction and confidence score.
-4. Holding a sign adds it to the **Sentence Buffer**.
-5. Click **"Speak Aloud (TTS)"** to hear the translated sentence!
-
-### 4. Collecting Custom Dataset & Retraining
-1. Switch to the **"Dataset Studio"** tab.
-2. Choose a sign from the 45 available classes.
-3. Align hands and press `SPACE` or click **"3s Burst Capture (30)"**.
-4. Click **"Retrain Model Now"** to update your model with zero downtime!
-
-### 5. Running the Standalone CLI Collector (Optional)
-If you prefer recording samples directly from a native OpenCV desktop window:
+Or run:
 ```bash
-py -3.10 -m ml_pipeline.dataset_collector --class_label A --samples 40
+python Indian-Sign-Language-Detection-main/isl_detection.py
 ```
-- `[SPACE]` to trigger countdown & capture burst.
-- `[C]` to switch gesture class.
-- `[T]` to retrain model.
-- `[Q]` to exit.
+
+### 3. Using the Web Application Modes
+- **Sign to Text**: Click "Start Camera". Perform signs with single or both hands. The AI HUD detects gestures with confidence, top-3 matches, sentence accumulator, and natural voice Text-to-Speech (TTS).
+- **Text to Sign**: Type any English or Hindi sentence. The player animates through whole-word ISL signs and letter-by-letter fingerspelling with variable speeds (0.5x - 2.0x) and filmstrip carousel.
+- **Voice to Sign**: Click "Start Listening" and speak into your microphone. Real-time speech recognition transcribes your words and immediately triggers the ISL visual player.
+- **Dataset Studio**: Capture new samples for any of the 45 classes directly via webcam bursts and retrain the model on-the-fly.
+- **ISL Dictionary & Practice**: Search and view detailed anatomical guides for all 45 signs, or test your skills in "Practice with Camera" mode.
+- **Research & Benchmarks**: View live confusion matrices, precision/recall/F1 metrics, and comparative analysis of 16 ISL research papers.
+
