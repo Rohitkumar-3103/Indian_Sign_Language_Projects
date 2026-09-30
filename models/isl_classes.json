@@ -1,0 +1,458 @@
+{
+  "classes": {
+    "0": "0",
+    "1": "1",
+    "2": "2",
+    "3": "3",
+    "4": "4",
+    "5": "5",
+    "6": "6",
+    "7": "7",
+    "8": "8",
+    "9": "9",
+    "10": "A",
+    "11": "B",
+    "12": "C",
+    "13": "D",
+    "14": "E",
+    "15": "F",
+    "16": "FOOD",
+    "17": "G",
+    "18": "H",
+    "19": "HELLO",
+    "20": "HELP",
+    "21": "I",
+    "22": "ILOVEYOU",
+    "23": "J",
+    "24": "K",
+    "25": "L",
+    "26": "M",
+    "27": "N",
+    "28": "NO",
+    "29": "O",
+    "30": "P",
+    "31": "PLEASE",
+    "32": "Q",
+    "33": "R",
+    "34": "S",
+    "35": "T",
+    "36": "THANK_YOU",
+    "37": "U",
+    "38": "V",
+    "39": "W",
+    "40": "WATER",
+    "41": "X",
+    "42": "Y",
+    "43": "YES",
+    "44": "Z"
+  },
+  "metadata": {
+    "0": {
+      "index": 0,
+      "category": "number",
+      "hands": 1,
+      "name": "Digit 0",
+      "description": "Fingers curled touching thumb forming an oval '0'.",
+      "tips": "Curl all fingers so fingertips meet thumb tip in a zero shape.",
+      "sample_count": 65
+    },
+    "1": {
+      "index": 1,
+      "category": "number",
+      "hands": 1,
+      "name": "Digit 1",
+      "description": "Single index finger extended upright, other fingers curled.",
+      "tips": "Point index finger straight up.",
+      "sample_count": 65
+    },
+    "2": {
+      "index": 2,
+      "category": "number",
+      "hands": 1,
+      "name": "Digit 2",
+      "description": "Index and middle fingers extended upright together or slightly spread.",
+      "tips": "Raise index and middle fingers.",
+      "sample_count": 65
+    },
+    "3": {
+      "index": 3,
+      "category": "number",
+      "hands": 1,
+      "name": "Digit 3",
+      "description": "Index, middle, and ring fingers extended upright.",
+      "tips": "Raise index, middle, and ring fingers.",
+      "sample_count": 65
+    },
+    "4": {
+      "index": 4,
+      "category": "number",
+      "hands": 1,
+      "name": "Digit 4",
+      "description": "Four fingers (index, middle, ring, pinky) extended, thumb folded across palm.",
+      "tips": "Four fingers held up, thumb tucked inward.",
+      "sample_count": 65
+    },
+    "5": {
+      "index": 5,
+      "category": "number",
+      "hands": 1,
+      "name": "Digit 5",
+      "description": "All five fingers fully spread and extended open.",
+      "tips": "Open hand with all five fingers spread apart.",
+      "sample_count": 65
+    },
+    "6": {
+      "index": 6,
+      "category": "number",
+      "hands": 2,
+      "name": "Digit 6",
+      "description": "Left hand open with 5 fingers; right hand extends 1 index finger (5 + 1 = 6).",
+      "tips": "Left hand shows 5, right hand shows 1 beside it.",
+      "sample_count": 65
+    },
+    "7": {
+      "index": 7,
+      "category": "number",
+      "hands": 2,
+      "name": "Digit 7",
+      "description": "Left hand open with 5 fingers; right hand extends 2 fingers (5 + 2 = 7).",
+      "tips": "Left hand shows 5, right hand shows 2.",
+      "sample_count": 65
+    },
+    "8": {
+      "index": 8,
+      "category": "number",
+      "hands": 2,
+      "name": "Digit 8",
+      "description": "Left hand open with 5 fingers; right hand extends 3 fingers (5 + 3 = 8).",
+      "tips": "Left hand shows 5, right hand shows 3.",
+      "sample_count": 65
+    },
+    "9": {
+      "index": 9,
+      "category": "number",
+      "hands": 2,
+      "name": "Digit 9",
+      "description": "Left hand open with 5 fingers; right hand extends 4 fingers (5 + 4 = 9).",
+      "tips": "Left hand shows 5, right hand shows 4.",
+      "sample_count": 65
+    },
+    "A": {
+      "index": 10,
+      "category": "alphabet",
+      "hands": 2,
+      "name": "Letter A",
+      "description": "Left hand open palm facing right; right hand index finger touches the tip of left thumb.",
+      "tips": "Touch the right index fingertip to the left thumb tip while keeping left fingers spread.",
+      "sample_count": 66
+    },
+    "B": {
+      "index": 11,
+      "category": "alphabet",
+      "hands": 2,
+      "name": "Letter B",
+      "description": "Left hand open upright; right hand index and middle finger form a loop against left palm/thumb.",
+      "tips": "Both hands form two loops resembling the letter 'B'.",
+      "sample_count": 65
+    },
+    "C": {
+      "index": 12,
+      "category": "alphabet",
+      "hands": 1,
+      "name": "Letter C",
+      "description": "Curved hand forming a 'C' shape with thumb and four fingers.",
+      "tips": "Single hand held sideways, fingers and thumb curved like the letter C.",
+      "sample_count": 65
+    },
+    "D": {
+      "index": 13,
+      "category": "alphabet",
+      "hands": 2,
+      "name": "Letter D",
+      "description": "Left hand index pointing up; right hand curved into 'C' touching left index to form 'D'.",
+      "tips": "Left index finger is the vertical stem; right curved hand creates the curved back of D.",
+      "sample_count": 65
+    },
+    "E": {
+      "index": 14,
+      "category": "alphabet",
+      "hands": 2,
+      "name": "Letter E",
+      "description": "Left hand open palm; right hand index finger touches left index fingertip.",
+      "tips": "Right index touches the tip of the left index finger (representing vowel E).",
+      "sample_count": 65
+    },
+    "F": {
+      "index": 15,
+      "category": "alphabet",
+      "hands": 2,
+      "name": "Letter F",
+      "description": "Left index and middle finger horizontal; right index and middle finger placed across them.",
+      "tips": "Cross two fingers of right hand over two horizontal fingers of left hand.",
+      "sample_count": 65
+    },
+    "FOOD": {
+      "index": 16,
+      "category": "word",
+      "hands": 1,
+      "name": "Food / Eat",
+      "description": "Fingertips brought together into a bunched shape pointing towards mouth.",
+      "tips": "Tuck all fingertips together and tap near the mouth twice.",
+      "sample_count": 65
+    },
+    "G": {
+      "index": 17,
+      "category": "alphabet",
+      "hands": 2,
+      "name": "Letter G",
+      "description": "Both hands form closed fists placed one on top of the other.",
+      "tips": "Right fist rested directly atop left fist.",
+      "sample_count": 65
+    },
+    "H": {
+      "index": 18,
+      "category": "alphabet",
+      "hands": 2,
+      "name": "Letter H",
+      "description": "Left hand flat palm horizontal; right hand flat palm swept across left palm.",
+      "tips": "Right flat palm sweeps across the horizontal left palm.",
+      "sample_count": 65
+    },
+    "HELLO": {
+      "index": 19,
+      "category": "word",
+      "hands": 1,
+      "name": "Hello / Namaste",
+      "description": "Open hand raised near temple/forehead and swept slightly outward in a salute, or palms pressed together (Namaste).",
+      "tips": "Wave or touch side of forehead with flat hand moving outward smoothly.",
+      "sample_count": 65
+    },
+    "HELP": {
+      "index": 20,
+      "category": "word",
+      "hands": 2,
+      "name": "Help",
+      "description": "Left hand flat palm up; right hand in thumbs-up fist rested on left palm and lifted slightly.",
+      "tips": "Right thumbs-up fist sits atop left flat palm and both move up together.",
+      "sample_count": 65
+    },
+    "I": {
+      "index": 21,
+      "category": "alphabet",
+      "hands": 2,
+      "name": "Letter I",
+      "description": "Left hand open palm facing inward; right hand index finger touches left middle fingertip.",
+      "tips": "Right index touches the tip of the left middle finger (representing vowel I).",
+      "sample_count": 65
+    },
+    "ILOVEYOU": {
+      "index": 22,
+      "category": "word",
+      "hands": 1,
+      "name": "I Love You",
+      "description": "Thumb, index finger, and pinky finger extended simultaneously, middle and ring folded.",
+      "tips": "Extend thumb, index, and pinky while keeping middle and ring curled into palm.",
+      "sample_count": 65
+    },
+    "J": {
+      "index": 23,
+      "category": "alphabet",
+      "hands": 2,
+      "name": "Letter J",
+      "description": "Right index traces the letter 'J' starting from left middle fingertip down and curling up.",
+      "tips": "Start at left middle fingertip, trace down into left palm with a hook.",
+      "sample_count": 65
+    },
+    "K": {
+      "index": 24,
+      "category": "alphabet",
+      "hands": 2,
+      "name": "Letter K",
+      "description": "Left index pointing up; right index finger bent at knuckle hooked onto left index.",
+      "tips": "Right bent index finger hooks around the vertical left index finger.",
+      "sample_count": 65
+    },
+    "L": {
+      "index": 25,
+      "category": "alphabet",
+      "hands": 1,
+      "name": "Letter L",
+      "description": "Single hand with thumb and index finger extended at right angles forming an 'L'.",
+      "tips": "Hold right hand up, thumb horizontal and index pointing straight up.",
+      "sample_count": 65
+    },
+    "M": {
+      "index": 26,
+      "category": "alphabet",
+      "hands": 2,
+      "name": "Letter M",
+      "description": "Right hand places three fingers (index, middle, ring) on the flat palm of left hand.",
+      "tips": "Three fingertips of right hand rest on left open palm to represent three legs of M.",
+      "sample_count": 65
+    },
+    "N": {
+      "index": 27,
+      "category": "alphabet",
+      "hands": 2,
+      "name": "Letter N",
+      "description": "Right hand places two fingers (index and middle) on the flat palm of left hand.",
+      "tips": "Two fingertips of right hand rest on left open palm to represent two legs of N.",
+      "sample_count": 65
+    },
+    "NO": {
+      "index": 28,
+      "category": "word",
+      "hands": 1,
+      "name": "No",
+      "description": "Index and middle fingers snap down against thumb, or index finger waving side-to-side.",
+      "tips": "Wave index finger back and forth or tap index and middle onto thumb.",
+      "sample_count": 65
+    },
+    "O": {
+      "index": 29,
+      "category": "alphabet",
+      "hands": 2,
+      "name": "Letter O",
+      "description": "Left hand open palm; right index touches the tip of left ring finger (vowel O).",
+      "tips": "Right index touches left ring fingertip (representing vowel O).",
+      "sample_count": 65
+    },
+    "P": {
+      "index": 30,
+      "category": "alphabet",
+      "hands": 2,
+      "name": "Letter P",
+      "description": "Left hand index pointing up; right hand thumb and index form a small circle at the top.",
+      "tips": "Left index forms stem; right thumb-index loop attaches to top to form P.",
+      "sample_count": 65
+    },
+    "PLEASE": {
+      "index": 31,
+      "category": "word",
+      "hands": 1,
+      "name": "Please",
+      "description": "Flat open hand rubbed in a circular motion over the chest.",
+      "tips": "Place flat right hand over center of chest and rub clockwise.",
+      "sample_count": 65
+    },
+    "Q": {
+      "index": 32,
+      "category": "alphabet",
+      "hands": 2,
+      "name": "Letter Q",
+      "description": "Left hand thumb and index form circle 'O'; right hand index placed through bottom as the tail.",
+      "tips": "Left hand circle with right index finger protruding down diagonally.",
+      "sample_count": 65
+    },
+    "R": {
+      "index": 33,
+      "category": "alphabet",
+      "hands": 2,
+      "name": "Letter R",
+      "description": "Left hand flat; right hand index finger hooked like a shepherd's crook resting on left palm.",
+      "tips": "Right curved/hooked index rests gently on the open left palm.",
+      "sample_count": 65
+    },
+    "S": {
+      "index": 34,
+      "category": "alphabet",
+      "hands": 2,
+      "name": "Letter S",
+      "description": "Both pinky fingers hooked together with fists closed.",
+      "tips": "Interlock both little (pinky) fingers while keeping palms facing you.",
+      "sample_count": 65
+    },
+    "T": {
+      "index": 35,
+      "category": "alphabet",
+      "hands": 2,
+      "name": "Letter T",
+      "description": "Left hand index pointing right horizontally; right hand index touches midpoint from below forming 'T'.",
+      "tips": "Left index is the horizontal bar; right index is the vertical stem touching the midpoint.",
+      "sample_count": 65
+    },
+    "THANK_YOU": {
+      "index": 36,
+      "category": "word",
+      "hands": 1,
+      "name": "Thank You",
+      "description": "Fingertips of flat hand touch chin or lips and move forward towards the other person.",
+      "tips": "Touch fingertips to lips/chin and extend flat hand outward gently.",
+      "sample_count": 65
+    },
+    "U": {
+      "index": 37,
+      "category": "alphabet",
+      "hands": 2,
+      "name": "Letter U",
+      "description": "Left hand open palm; right hand index touches the tip of left pinky finger (vowel U).",
+      "tips": "Right index touches left pinky fingertip (representing vowel U).",
+      "sample_count": 65
+    },
+    "V": {
+      "index": 38,
+      "category": "alphabet",
+      "hands": 1,
+      "name": "Letter V",
+      "description": "Single hand index and middle fingers extended apart in a 'V' shape (peace sign).",
+      "tips": "Extend index and middle fingers apart while thumb holds ring and pinky.",
+      "sample_count": 65
+    },
+    "W": {
+      "index": 39,
+      "category": "alphabet",
+      "hands": 2,
+      "name": "Letter W",
+      "description": "Fingers of both hands interlocked and pointed upwards forming a 'W' shape.",
+      "tips": "Interlock all fingers of both hands pointing upwards.",
+      "sample_count": 65
+    },
+    "WATER": {
+      "index": 40,
+      "category": "word",
+      "hands": 1,
+      "name": "Water",
+      "description": "Three middle fingers extended forming 'W', index touches the chin/mouth twice.",
+      "tips": "Form 'W' with index, middle, ring; tap index finger gently against chin.",
+      "sample_count": 65
+    },
+    "X": {
+      "index": 41,
+      "category": "alphabet",
+      "hands": 2,
+      "name": "Letter X",
+      "description": "Both index fingers crossed over each other to form an 'X'.",
+      "tips": "Cross right index over left index at 90 degrees.",
+      "sample_count": 65
+    },
+    "Y": {
+      "index": 42,
+      "category": "alphabet",
+      "hands": 2,
+      "name": "Letter Y",
+      "description": "Left index and thumb extended in 'V'; right index rests in the junction pointing down.",
+      "tips": "Right index finger points between the left extended thumb and index finger.",
+      "sample_count": 65
+    },
+    "YES": {
+      "index": 43,
+      "category": "word",
+      "hands": 1,
+      "name": "Yes",
+      "description": "Closed fist with thumb upright (thumbs up) or fist nodding up and down.",
+      "tips": "Give a clear thumbs-up gesture or nod the fist gently.",
+      "sample_count": 65
+    },
+    "Z": {
+      "index": 44,
+      "category": "alphabet",
+      "hands": 2,
+      "name": "Letter Z",
+      "description": "Left hand held flat horizontally; right hand held vertical with fingertips touching to form angle of Z.",
+      "tips": "Right fingertips touch left palm or right index traces 'Z' in the air.",
+      "sample_count": 65
+    }
+  },
+  "num_classes": 45,
+  "num_features": 156
+}

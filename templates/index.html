@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ISL Vision - Indian Sign Language Recognition & Translation System</title>
+  <meta name="description" content="State-of-the-art Real-time Indian Sign Language (ISL) Recognition, Dataset Studio, and Interactive Learning System using MediaPipe & Machine Learning.">
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  
+  <!-- MediaPipe Hands & Camera Utils CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+
+  <!-- Canvas Confetti for Practice Mode Celebrations -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+  <!-- App Stylesheet -->
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+  <div class="app-container">
+    
+    <!-- Top Header -->
+    <header class="header">
+      <div class="logo-area">
+        <div class="logo-icon">
+          <i class="fa-solid fa-hands-asl-interpreting"></i>
+        </div>
+        <div class="logo-title">
+          <h1>ISL Vision</h1>
+          <p>Indian Sign Language AI System</p>
+        </div>
+      </div>
+
+      <div class="system-status" id="system-status-pill">
+        <span class="status-indicator"></span>
+        <span class="status-text" id="status-text">System Active &bull; 45 Classes Loaded</span>
+      </div>
+    </header>
+
+    <!-- Navigation Tabs -->
+    <nav class="nav-tabs" role="tablist">
+      <button class="tab-btn active" data-tab="tab-translator" id="btn-tab-translator">
+        <i class="fa-solid fa-video"></i>
+        <span>Live Translator</span>
+      </button>
+      <button class="tab-btn" data-tab="tab-studio" id="btn-tab-studio">
+        <i class="fa-solid fa-camera-rotate"></i>
+        <span>Dataset Studio</span>
+        <span class="tab-badge" id="studio-sample-badge">2,925 Samples</span>
+      </button>
+      <button class="tab-btn" data-tab="tab-dictionary" id="btn-tab-dictionary">
+        <i class="fa-solid fa-book-open"></i>
+        <span>ISL Dictionary & Practice</span>
+      </button>
+      <button class="tab-btn" data-tab="tab-research" id="btn-tab-research">
+        <i class="fa-solid fa-graduation-cap"></i>
+        <span>Research & Benchmarks</span>
+        <span class="tab-badge">16 Papers</span>
+      </button>
+    </nav>
+
+    <!-- ====================================================================
+         Tab 1: Live ISL Translator
+         ==================================================================== -->
+    <main class="tab-content active" id="tab-translator">
+      <div class="translator-grid">
+        
+        <!-- Left: Webcam + HUD + Sentence Accumulator -->
+        <div class="main-column" style="display: flex; flex-direction: column; gap: 1.5rem;">
+          
+          <!-- Camera Feed Card -->
+          <div class="camera-card">
+            <div class="card-topbar">
+              <div class="card-title">
+                <i class="fa-solid fa-webcam text-emerald" style="color: var(--accent-emerald);"></i>
+                <span>Live Gesture Stream</span>
+              </div>
+              <div class="camera-btn-group">
+                <button class="btn btn-outline btn-sm" id="btn-toggle-landmarks">
+                  <i class="fa-solid fa-draw-polygon"></i> Skeleton: ON
+                </button>
+                <button class="btn btn-primary btn-sm" id="btn-toggle-webcam">
+                  <i class="fa-solid fa-play"></i> Start Camera
+                </button>
+              </div>
+            </div>
+
+            <!-- Viewport Container -->
+            <div class="camera-viewport" id="viewport-container">
+              <video id="webcam-video" autoplay playsinline muted></video>
+              <canvas id="camera-canvas"></canvas>
+
+              <!-- Top Floating HUD Badges -->
+              <div class="camera-hud">
+                <div class="hud-badge live-tag" id="camera-status-badge">CAMERA OFF</div>
+                <div class="hud-badge fps-tag" id="fps-counter"><i class="fa-solid fa-bolt"></i> 0 FPS</div>
+              </div>
+
+              <!-- Bottom Gesture Recognition Overlay -->
+              <div class="gesture-hud-overlay" id="gesture-overlay" style="display: none;">
+                <div class="recognized-symbol" id="hud-symbol">-</div>
+                <div class="recognized-meta">
+                  <span class="recognized-name" id="hud-name">Position hand to start</span>
+                  <div class="confidence-bar-wrap">
+                    <div class="confidence-bar-bg">
+                      <div class="confidence-bar-fill" id="hud-confidence-bar"></div>
+                    </div>
+                    <span class="confidence-val" id="hud-confidence-val">0%</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Bottom Camera Controls -->
+            <div class="camera-actions">
+              <span style="font-size: 0.8rem; color: var(--text-muted);">
+                <i class="fa-solid fa-circle-info"></i> Supports both <strong>Single-Hand</strong> and <strong>Two-Handed</strong> ISL gestures.
+              </span>
+              <div class="camera-btn-group">
+                <button class="btn btn-secondary btn-sm" id="btn-snapshot">
+                  <i class="fa-solid fa-camera"></i> Snapshot
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Real-Time Sentence Builder Card -->
+          <div class="sentence-card">
+            <div class="card-topbar">
+              <div class="card-title">
+                <i class="fa-solid fa-comment-dots" style="color: var(--accent-cyan);"></i>
+                <span>Recognized Sentence Buffer</span>
+              </div>
+              <div class="action-tools">
+                <button class="btn btn-outline btn-sm" id="btn-add-space" title="Insert Space">
+                  <i class="fa-solid fa-arrows-left-right"></i> Space
+                </button>
+                <button class="btn btn-outline btn-sm" id="btn-backspace" title="Backspace">
+                  <i class="fa-solid fa-delete-left"></i> Backspace
+                </button>
+                <button class="btn btn-danger btn-sm" id="btn-clear-sentence" title="Clear Buffer">
+                  <i class="fa-solid fa-trash"></i> Clear
+                </button>
+                <button class="btn btn-primary btn-sm" id="btn-speak-sentence">
+                  <i class="fa-solid fa-volume-high"></i> Speak Aloud (TTS)
+                </button>
+              </div>
+            </div>
+
+            <div class="sentence-display" id="sentence-display-box">
+              <span id="sentence-text">Recognized gestures will assemble here...</span>
+              <span class="sentence-cursor"></span>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Right: Real-Time Intelligence & Guidance Sidebar -->
+        <aside class="sidebar-panel">
+          
+          <!-- Live Prediction Ranking Card -->
+          <div class="info-card">
+            <div class="info-header">
+              <span>Top Predictions</span>
+              <i class="fa-solid fa-chart-simple"></i>
+            </div>
+            <div class="top-predictions-list" id="predictions-list">
+              <div class="pred-row">
+                <span class="pred-label">-</span>
+                <span class="pred-percent">0%</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Dual-Hand Guidance Card -->
+          <div class="info-card">
+            <div class="info-header">
+              <span>ISL Hand Guide</span>
+              <i class="fa-solid fa-hand-sparkles"></i>
+            </div>
+            <div class="dual-hand-guide">
+              <h4>Two-Handed vs Single-Handed</h4>
+              <p>Unlike ASL, Indian Sign Language features extensive two-handed gestures:</p>
+              <ul style="padding-left: 1.2rem; margin-top: 0.4rem; font-size: 0.8rem; color: var(--text-secondary);">
+                <li><strong style="color: var(--accent-emerald);">Green Skeleton:</strong> Right / Dominant Hand</li>
+                <li><strong style="color: var(--accent-cyan);">Cyan Skeleton:</strong> Left / Secondary Hand</li>
+                <li>Vowels <strong>A, E, I, O, U</strong> use right index touching left fingertips!</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Active Sign Tip -->
+          <div class="info-card" id="active-sign-card" style="display: none;">
+            <div class="info-header">
+              <span>Active Gesture Details</span>
+              <i class="fa-solid fa-lightbulb" style="color: var(--accent-amber);"></i>
+            </div>
+            <div style="font-size: 0.85rem; line-height: 1.4;">
+              <strong id="guide-sign-title" style="color: #fff; font-size: 0.95rem;">-</strong>
+              <p id="guide-sign-desc" style="color: var(--text-secondary); margin: 0.3rem 0;">-</p>
+              <div class="sign-card-tip" id="guide-sign-tip" style="margin-top: 0.5rem;">-</div>
+            </div>
+          </div>
+
+        </aside>
+
+      </div>
+    </main>
+
+    <!-- ====================================================================
+         Tab 2: Dataset Studio & Collector
+         ==================================================================== -->
+    <section class="tab-content" id="tab-studio">
+      <div class="studio-grid">
+        
+        <!-- Left: Class Picker -->
+        <div class="studio-sidebar">
+          <div class="class-picker-box">
+            <div class="info-header">
+              <span>Select Target Class</span>
+              <i class="fa-solid fa-list-check"></i>
+            </div>
+            
+            <div class="category-filter">
+              <button class="cat-btn active" data-cat="all">All</button>
+              <button class="cat-btn" data-cat="alphabet">A-Z</button>
+              <button class="cat-btn" data-cat="number">0-9</button>
+              <button class="cat-btn" data-cat="word">Words</button>
+            </div>
+
+            <div class="class-grid-selector" id="studio-class-selector">
+              <!-- Dynamically populated via JS -->
+            </div>
+          </div>
+
+          <!-- Retrain Model Card -->
+          <div class="info-card">
+            <div class="info-header">
+              <span>Model Trainer</span>
+              <i class="fa-solid fa-microchip"></i>
+            </div>
+            <p style="font-size: 0.82rem; color: var(--text-secondary);">
+              Collected new gesture data? Retrain the Random Forest model directly without restarting the server.
+            </p>
+            <button class="btn btn-primary" id="btn-trigger-train" style="width: 100%; margin-top: 0.5rem;">
+              <i class="fa-solid fa-gear"></i> Retrain Model Now
+            </button>
+            <div id="train-status-msg" style="font-size: 0.8rem; margin-top: 0.5rem; text-align: center; display: none;"></div>
+          </div>
+        </div>
+
+        <!-- Right: Capture Arena -->
+        <div class="studio-main">
+          
+          <div class="studio-header">
+            <div class="current-class-badge">
+              <div class="big-chip" id="studio-current-chip">A</div>
+              <div class="class-details">
+                <h3 id="studio-current-name">Letter A</h3>
+                <p id="studio-current-desc">Right index touches tip of left thumb</p>
+              </div>
+            </div>
+
+            <div class="sample-stats">
+              <div class="stat-item">
+                <span class="stat-label">Class Samples</span>
+                <span class="stat-value" id="studio-class-samples">65</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-label">Total Dataset</span>
+                <span class="stat-value" id="studio-total-samples">2,925</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Studio Viewport -->
+          <div class="camera-viewport" id="studio-viewport" style="aspect-ratio: 16/9; max-height: 440px;">
+            <video id="studio-webcam" autoplay playsinline muted style="position: absolute; width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1);"></video>
+            <canvas id="studio-canvas" style="position: absolute; width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); pointer-events: none; z-index: 2;"></canvas>
+
+            <div class="camera-hud">
+              <div class="hud-badge live-tag" id="studio-hud-tag">READY</div>
+              <div class="hud-badge fps-tag" id="studio-burst-counter">BURST: 0/30</div>
+            </div>
+          </div>
+
+          <!-- Capture Controls -->
+          <div class="capture-controls-bar">
+            <div style="font-size: 0.85rem; color: var(--text-secondary);">
+              <i class="fa-solid fa-keyboard"></i> Press <kbd style="background: rgba(255,255,255,0.1); padding: 0.2rem 0.4rem; border-radius: 4px;">SPACE</kbd> for 3-second Countdown Burst
+            </div>
+            <div class="camera-btn-group">
+              <button class="btn btn-secondary" id="btn-studio-single-capture">
+                <i class="fa-solid fa-camera"></i> Single Frame
+              </button>
+              <button class="btn btn-primary" id="btn-studio-burst-capture">
+                <i class="fa-solid fa-burst"></i> 3s Burst Capture (30)
+              </button>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         Tab 3: ISL Visual Dictionary & Practice
+         ==================================================================== -->
+    <section class="tab-content" id="tab-dictionary">
+      <div class="dict-controls">
+        <div class="search-input-wrap">
+          <i class="fa-solid fa-magnifying-glass search-icon"></i>
+          <input type="text" class="search-input" id="dict-search-input" placeholder="Search signs (e.g. A, Namaste, Water, 5)...">
+        </div>
+
+        <div class="category-filter">
+          <button class="cat-btn active" data-dict-cat="all">All Signs</button>
+          <button class="cat-btn" data-dict-cat="alphabet">Alphabets (A-Z)</button>
+          <button class="cat-btn" data-dict-cat="number">Numbers (0-9)</button>
+          <button class="cat-btn" data-dict-cat="word">Phrases & Words</button>
+        </div>
+      </div>
+
+      <div class="dictionary-grid" id="dictionary-cards-grid">
+        <!-- Rendered via JS -->
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         Tab 4: Research Papers & Benchmarks
+         ==================================================================== -->
+    <section class="tab-content" id="tab-research">
+      <div class="research-container">
+        
+        <!-- Benchmark Banner -->
+        <div class="benchmark-banner">
+          <div class="benchmark-stat">
+            <span class="bench-title">System Pipeline</span>
+            <span class="bench-number" style="font-size: 1.4rem;">MediaPipe + RF</span>
+            <span class="bench-sub">156-dim Invariant Vector</span>
+          </div>
+          <div class="benchmark-stat">
+            <span class="bench-title">Inference Latency</span>
+            <span class="bench-number" style="color: var(--accent-emerald);">~3 ms</span>
+            <span class="bench-sub">Ultra Real-Time CPU Ready</span>
+          </div>
+          <div class="benchmark-stat">
+            <span class="bench-title">Vocabulary Size</span>
+            <span class="bench-number">45 Signs</span>
+            <span class="bench-sub">A-Z, 0-9, Key Phrases</span>
+          </div>
+          <div class="benchmark-stat">
+            <span class="bench-title">Active Model Accuracy</span>
+            <span class="bench-number" id="bench-val-acc" style="color: var(--accent-cyan);">94.2%</span>
+            <span class="bench-sub" id="bench-total-samples">On Stratified Test Set</span>
+          </div>
+        </div>
+
+        <!-- Research Papers Table -->
+        <div class="papers-table-card">
+          <div class="info-header" style="margin-bottom: 1.25rem;">
+            <span>Survey of Research Papers in Project Repository</span>
+            <i class="fa-solid fa-book-bookmark"></i>
+          </div>
+          
+          <table class="styled-table">
+            <thead>
+              <tr>
+                <th>Title / Publication</th>
+                <th>Architecture / Method</th>
+                <th>Gestures / Scope</th>
+                <th>Key Findings & Integration</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Indian Sign Language Recognition Using Mediapipe Holistic</strong></td>
+                <td><span class="paper-badge">MediaPipe + Deep Learning</span></td>
+                <td>ISL Alphabets & Words</td>
+                <td>Leverages 3D landmark extraction to eliminate complex skin-color segmentation bottlenecks.</td>
+              </tr>
+              <tr>
+                <td><strong>Two-Handed Indian Sign Language Recognition Using MediaPipe and Machine Learning</strong></td>
+                <td><span class="paper-badge">MediaPipe + Random Forest / SVM</span></td>
+                <td>Two-Handed ISL Signs</td>
+                <td>Emphasizes relative dual-hand coordinate normalization; adopted in our 156-dim feature pipeline.</td>
+              </tr>
+              <tr>
+                <td><strong>Real Time Indian Sign Language Detection Using LSTM and Keypoint Extraction</strong></td>
+                <td><span class="paper-badge">MediaPipe + LSTM RNN</span></td>
+                <td>Dynamic Temporal Signs</td>
+                <td>Sequential frame tracking for continuous signs; provides baseline for word/phrase debouncing.</td>
+              </tr>
+              <tr>
+                <td><strong>Sign_Comm: A Real-Time ISL Recognition System</strong></td>
+                <td><span class="paper-badge">CNN + OpenCV</span></td>
+                <td>Real-time Communication</td>
+                <td>Real-time inclusive communication with Text-to-Speech synthesis for bidirectional exchange.</td>
+              </tr>
+              <tr>
+                <td><strong>Indian Sign Language to Text/Speech Translation</strong></td>
+                <td><span class="paper-badge">Feature Extraction + TTS</span></td>
+                <td>Bidirectional Voice Output</td>
+                <td>Translates recognized gestures into voice output for mute and deaf community members.</td>
+              </tr>
+              <tr>
+                <td><strong>Integrative Survey on Indian Sign Language Recognition (Damdoo 2025)</strong></td>
+                <td><span class="paper-badge">Comprehensive Survey</span></td>
+                <td>Survey & Taxonomy</td>
+                <td>Reviews single vs two-handed challenges, lighting invariance, and ISLRTC standardization.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+    </section>
+
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <!-- Practice Challenge Modal -->
+  <div id="practice-modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(12px); z-index: 10000; align-items: center; justify-content: center;">
+    <div style="background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); width: 90%; max-width: 600px; padding: 2rem; display: flex; flex-direction: column; gap: 1.25rem; box-shadow: var(--shadow-md);">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <h2 style="font-family: var(--font-display); font-size: 1.4rem;">Practice Challenge: <span id="modal-sign-name" style="color: var(--accent-emerald);">-</span></h2>
+        <button id="btn-close-modal" class="btn btn-outline btn-sm" style="padding: 0.3rem 0.6rem;"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <p id="modal-sign-desc" style="color: var(--text-secondary); font-size: 0.9rem;">-</p>
+      <div id="modal-tip-box" class="sign-card-tip">-</div>
+      
+      <div style="background: rgba(0,0,0,0.4); border-radius: var(--radius-md); padding: 1.5rem; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 0.75rem;">
+        <span style="font-size: 0.85rem; color: var(--text-muted);">Perform this gesture in front of the camera</span>
+        <div id="modal-match-status" style="font-size: 1.8rem; font-weight: 800; color: var(--accent-amber);">Waiting for Pose...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- JavaScript Modules -->
+  <script src="/static/js/app.js"></script>
+</body>
+</html>
