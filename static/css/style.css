@@ -1037,3 +1037,386 @@ body {
   from { transform: translateX(50px); opacity: 0; }
   to { transform: translateX(0); opacity: 1; }
 }
+
+/* ==========================================================================
+   Text to Sign & Voice to Sign Components
+   ========================================================================== */
+
+.tts-layout-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+}
+
+@media (max-width: 1024px) {
+  .tts-layout-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.text-input-card {
+  background: var(--bg-card);
+  backdrop-filter: blur(16px);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  box-shadow: var(--shadow-md);
+}
+
+.sign-textarea {
+  width: 100%;
+  min-height: 120px;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 1rem;
+  color: #fff;
+  font-family: var(--font-sans);
+  font-size: 1.05rem;
+  resize: vertical;
+  outline: none;
+  transition: var(--transition);
+}
+
+.sign-textarea:focus {
+  border-color: var(--accent-emerald);
+  box-shadow: 0 0 15px rgba(16, 185, 129, 0.25);
+}
+
+.quick-phrase-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.phrase-chip {
+  padding: 0.35rem 0.75rem;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-full);
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.phrase-chip:hover {
+  background: rgba(16, 185, 129, 0.15);
+  border-color: var(--accent-emerald);
+  color: #fff;
+}
+
+/* Sign Player Stage */
+.sign-player-card {
+  background: var(--bg-card);
+  backdrop-filter: blur(16px);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  box-shadow: var(--shadow-md);
+  align-items: center;
+  position: relative;
+}
+
+.player-stage {
+  width: 100%;
+  max-width: 380px;
+  aspect-ratio: 1;
+  background: radial-gradient(circle at center, rgba(16, 185, 129, 0.08) 0%, rgba(0, 0, 0, 0.6) 80%);
+  border: 2px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  transition: var(--transition);
+}
+
+.player-stage.playing {
+  border-color: var(--accent-emerald);
+  box-shadow: 0 0 30px rgba(16, 185, 129, 0.25);
+}
+
+.stage-sign-image {
+  max-width: 82%;
+  max-height: 82%;
+  object-fit: contain;
+  border-radius: var(--radius-md);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.stage-sign-image.anim-pop {
+  transform: scale(1.05);
+}
+
+.stage-step-tag {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  background: rgba(15, 23, 42, 0.85);
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--border-subtle);
+  padding: 0.25rem 0.65rem;
+  border-radius: var(--radius-full);
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--accent-emerald-light);
+}
+
+.stage-hands-tag {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+}
+
+.player-meta-box {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.player-sign-title {
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: -0.01em;
+}
+
+.player-sign-desc {
+  font-size: 0.88rem;
+  color: var(--text-secondary);
+  max-width: 420px;
+  line-height: 1.4;
+}
+
+/* Timeline & Progress */
+.player-timeline {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.progress-track {
+  width: 100%;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent-emerald), var(--accent-cyan));
+  width: 0%;
+  transition: width 0.25s ease;
+}
+
+.player-controls-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  width: 100%;
+  flex-wrap: wrap;
+}
+
+.speed-selector {
+  display: flex;
+  gap: 0.25rem;
+  background: rgba(0, 0, 0, 0.4);
+  padding: 0.25rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-subtle);
+}
+
+.speed-btn {
+  padding: 0.3rem 0.6rem;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  font-weight: 700;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.speed-btn.active {
+  background: var(--bg-tertiary);
+  color: var(--accent-emerald-light);
+}
+
+/* Filmstrip Carousel */
+.filmstrip-card {
+  grid-column: 1 / -1;
+  background: var(--bg-card);
+  backdrop-filter: blur(16px);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.filmstrip-container {
+  display: flex;
+  gap: 0.85rem;
+  overflow-x: auto;
+  padding: 0.5rem 0.25rem 0.75rem;
+  scroll-behavior: smooth;
+}
+
+.filmstrip-thumb {
+  flex: 0 0 100px;
+  height: 125px;
+  background: rgba(0, 0, 0, 0.4);
+  border: 2px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.filmstrip-thumb:hover {
+  transform: translateY(-3px);
+  border-color: rgba(16, 185, 129, 0.5);
+}
+
+.filmstrip-thumb.active {
+  border-color: var(--accent-emerald);
+  background: rgba(16, 185, 129, 0.1);
+  box-shadow: 0 0 15px rgba(16, 185, 129, 0.3);
+  transform: scale(1.05);
+}
+
+.filmstrip-thumb img {
+  width: 60px;
+  height: 60px;
+  object-fit: contain;
+  border-radius: var(--radius-sm);
+}
+
+.filmstrip-thumb-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #fff;
+  text-align: center;
+}
+
+/* Voice to Sign Hero Section */
+.voice-hero-card {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.12), rgba(6, 182, 212, 0.08));
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: 2.5rem 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 1.5rem;
+}
+
+.mic-action-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.mic-main-btn {
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent-emerald), var(--accent-cyan));
+  border: none;
+  color: #fff;
+  font-size: 2.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 0 30px rgba(16, 185, 129, 0.4);
+  transition: var(--transition);
+  position: relative;
+}
+
+.mic-main-btn:hover {
+  transform: scale(1.06);
+  box-shadow: 0 0 45px rgba(16, 185, 129, 0.6);
+}
+
+.mic-main-btn.listening {
+  background: linear-gradient(135deg, var(--accent-rose), #e11d48);
+  box-shadow: 0 0 40px rgba(244, 63, 94, 0.6);
+  animation: mic-pulse 1.4s infinite;
+}
+
+@keyframes mic-pulse {
+  0% { box-shadow: 0 0 0 0 rgba(244, 63, 94, 0.7); }
+  70% { box-shadow: 0 0 0 25px rgba(244, 63, 94, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(244, 63, 94, 0); }
+}
+
+/* Sound Wave Bars */
+.audio-wave-visualizer {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  height: 28px;
+}
+
+.wave-bar {
+  width: 4px;
+  height: 8px;
+  background: var(--accent-cyan);
+  border-radius: 2px;
+  transition: height 0.1s ease;
+}
+
+.wave-bar.active {
+  animation: wave-anim 0.8s infinite ease-in-out alternate;
+}
+
+.wave-bar:nth-child(2) { animation-delay: 0.15s; }
+.wave-bar:nth-child(3) { animation-delay: 0.3s; }
+.wave-bar:nth-child(4) { animation-delay: 0.45s; }
+.wave-bar:nth-child(5) { animation-delay: 0.2s; }
+
+@keyframes wave-anim {
+  from { height: 6px; }
+  to { height: 26px; }
+}
+
+.voice-transcript-box {
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 1.25rem 1.75rem;
+  max-width: 600px;
+  width: 100%;
+  min-height: 70px;
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+

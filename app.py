@@ -119,6 +119,117 @@ def api_metrics():
             return jsonify(json.load(f))
     return jsonify({"error": "Metrics not found. Train the model first."}), 404
 
+# ----------------- Text to Sign Translation API -----------------
+
+WORD_ALIASES = {
+    "HI": "HELLO",
+    "HEY": "HELLO",
+    "NAMASTE": "HELLO",
+    "HELLO": "HELLO",
+    "THANKS": "THANK_YOU",
+    "THANK": "THANK_YOU",
+    "THANKYOU": "THANK_YOU",
+    "THANK_YOU": "THANK_YOU",
+    "YES": "YES",
+    "YEAH": "YES",
+    "YUP": "YES",
+    "HAAN": "YES",
+    "NO": "NO",
+    "NOPE": "NO",
+    "NAHI": "NO",
+    "PLEASE": "PLEASE",
+    "KRPAYA": "PLEASE",
+    "HELP": "HELP",
+    "MADAD": "HELP",
+    "WATER": "WATER",
+    "PANI": "WATER",
+    "PAANI": "WATER",
+    "FOOD": "FOOD",
+    "EAT": "FOOD",
+    "KHANA": "FOOD",
+    "ILOVEYOU": "ILOVEYOU",
+    "LOVE": "ILOVEYOU"
+}
+
+@app.route("/api/text_to_sign", methods=["POST"])
+def api_text_to_sign():
+    """
+    Translates input text or transcribed voice into Indian Sign Language (ISL) sequence.
+    Handles whole-word signs where available and finger-spells alphabets & digits.
+    """
+    try:
+        data = request.get_json(force=True) or {}
+        text = data.get("text", "").strip()
+        if not text:
+            return jsonify({"error": "Empty text provided"}), 400
+
+        raw_words = text.upper().split()
+        sequence = []
+        i = 0
+
+        while i < len(raw_words):
+            # Check 2-word phrase
+            if i + 1 < len(raw_words):
+                two_word = f"{raw_words[i]}_{raw_words[i+1]}"
+                if two_word in WORD_ALIASES:
+                    sign_key = WORD_ALIASES[two_word]
+                    meta = ISL_CLASSES.get(sign_key, {})
+                    sequence.append({
+                        "token": f"{raw_words[i]} {raw_words[i+1]}",
+                        "sign_key": sign_key,
+                        "is_word": True,
+                        "image_url": f"/static/assets/signs/{sign_key}.jpg",
+                        "name": meta.get("name", sign_key),
+                        "description": meta.get("description", ""),
+                        "tips": meta.get("tips", ""),
+                        "hands": meta.get("hands", 1)
+                    })
+                    i += 2
+                    continue
+
+            w = raw_words[i]
+            clean_w = "".join(ch for ch in w if ch.isalnum() or ch == '_')
+
+            if clean_w in WORD_ALIASES:
+                sign_key = WORD_ALIASES[clean_w]
+                meta = ISL_CLASSES.get(sign_key, {})
+                sequence.append({
+                    "token": clean_w,
+                    "sign_key": sign_key,
+                    "is_word": True,
+                    "image_url": f"/static/assets/signs/{sign_key}.jpg",
+                    "name": meta.get("name", sign_key),
+                    "description": meta.get("description", ""),
+                    "tips": meta.get("tips", ""),
+                    "hands": meta.get("hands", 1)
+                })
+            else:
+                # Finger spell character by character
+                for char in clean_w:
+                    if char in ISL_CLASSES:
+                        meta = ISL_CLASSES[char]
+                        sequence.append({
+                            "token": char,
+                            "sign_key": char,
+                            "is_word": False,
+                            "image_url": f"/static/assets/signs/{char}.jpg",
+                            "name": meta.get("name", f"Letter {char}"),
+                            "description": meta.get("description", ""),
+                            "tips": meta.get("tips", ""),
+                            "hands": meta.get("hands", 1)
+                        })
+            i += 1
+
+        return jsonify({
+            "original_text": text,
+            "total_signs": len(sequence),
+            "sequence": sequence
+        })
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
 @app.route("/api/predict_frame", methods=["POST"])
 def api_predict_frame():
     """

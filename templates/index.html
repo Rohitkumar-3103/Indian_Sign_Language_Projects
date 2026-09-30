@@ -48,13 +48,21 @@
     <!-- Navigation Tabs -->
     <nav class="nav-tabs" role="tablist">
       <button class="tab-btn active" data-tab="tab-translator" id="btn-tab-translator">
-        <i class="fa-solid fa-video"></i>
-        <span>Live Translator</span>
+        <i class="fa-solid fa-hands-asl-interpreting"></i>
+        <span>Sign to Text</span>
+      </button>
+      <button class="tab-btn" data-tab="tab-text-to-sign" id="btn-tab-text-to-sign">
+        <i class="fa-solid fa-keyboard"></i>
+        <span>Text to Sign</span>
+      </button>
+      <button class="tab-btn" data-tab="tab-voice-to-sign" id="btn-tab-voice-to-sign">
+        <i class="fa-solid fa-microphone-lines"></i>
+        <span>Voice to Sign</span>
       </button>
       <button class="tab-btn" data-tab="tab-studio" id="btn-tab-studio">
         <i class="fa-solid fa-camera-rotate"></i>
         <span>Dataset Studio</span>
-        <span class="tab-badge" id="studio-sample-badge">2,925 Samples</span>
+        <span class="tab-badge" id="studio-sample-badge">2,926 Samples</span>
       </button>
       <button class="tab-btn" data-tab="tab-dictionary" id="btn-tab-dictionary">
         <i class="fa-solid fa-book-open"></i>
@@ -216,7 +224,208 @@
     </main>
 
     <!-- ====================================================================
-         Tab 2: Dataset Studio & Collector
+         Tab 2: Text to Sign
+         ==================================================================== -->
+    <section class="tab-content" id="tab-text-to-sign">
+      <div class="tts-layout-grid">
+        
+        <!-- Left: Input & Phrase Selection -->
+        <div class="text-input-card">
+          <div class="card-topbar">
+            <div class="card-title">
+              <i class="fa-solid fa-keyboard" style="color: var(--accent-cyan);"></i>
+              <span>Enter English or Hindi Text</span>
+            </div>
+            <button class="btn btn-outline btn-sm" id="btn-clear-tts-input">
+              <i class="fa-solid fa-rotate-left"></i> Reset
+            </button>
+          </div>
+
+          <textarea id="tts-input-text" class="sign-textarea" placeholder="Type words, phrases, or names (e.g. Hello, Thank You, Namaste, Water, Food, Amit 2026)...">HELLO AMIT THANK YOU</textarea>
+
+          <div>
+            <label style="font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Quick Preset Phrases</label>
+            <div class="quick-phrase-chips" style="margin-top: 0.4rem;">
+              <button class="phrase-chip tts-preset-btn" data-phrase="Hello">👋 Hello</button>
+              <button class="phrase-chip tts-preset-btn" data-phrase="Thank You">🙏 Thank You</button>
+              <button class="phrase-chip tts-preset-btn" data-phrase="Yes">👍 Yes</button>
+              <button class="phrase-chip tts-preset-btn" data-phrase="No">✋ No</button>
+              <button class="phrase-chip tts-preset-btn" data-phrase="Please help me">🆘 Please Help</button>
+              <button class="phrase-chip tts-preset-btn" data-phrase="I need water">💧 Water</button>
+              <button class="phrase-chip tts-preset-btn" data-phrase="Food">🍲 Food</button>
+              <button class="phrase-chip tts-preset-btn" data-phrase="I Love You">🤟 I Love You</button>
+            </div>
+          </div>
+
+          <button class="btn btn-primary" id="btn-translate-text" style="width: 100%; padding: 0.85rem;">
+            <i class="fa-solid fa-hands-asl-interpreting"></i> Translate into ISL Gesture Sequence
+          </button>
+        </div>
+
+        <!-- Right: Animated Sign Player Stage -->
+        <div class="sign-player-card">
+          <div class="player-stage" id="player-stage">
+            <span class="stage-step-tag" id="player-step-tag">Sign 1 of 1</span>
+            <span class="stage-hands-tag hand-tag one-hand" id="player-hands-tag">1 Hand</span>
+            <img id="player-sign-image" class="stage-sign-image" src="/static/assets/signs/HELLO.jpg" alt="Sign Pose">
+          </div>
+
+          <div class="player-meta-box">
+            <div class="player-sign-title" id="player-sign-title">HELLO</div>
+            <p class="player-sign-desc" id="player-sign-desc">Open hand raised near temple and swept smoothly outward.</p>
+          </div>
+
+          <!-- Timeline & Progress Bar -->
+          <div class="player-timeline">
+            <div class="progress-track">
+              <div class="progress-bar-fill" id="player-progress-bar"></div>
+            </div>
+          </div>
+
+          <!-- Playback Controls -->
+          <div class="player-controls-row">
+            <button class="btn btn-outline btn-sm" id="btn-player-prev" title="Previous Sign">
+              <i class="fa-solid fa-backward-step"></i> Prev
+            </button>
+            <button class="btn btn-primary btn-sm" id="btn-player-toggle" style="min-width: 110px;">
+              <i class="fa-solid fa-play"></i> Play
+            </button>
+            <button class="btn btn-outline btn-sm" id="btn-player-next" title="Next Sign">
+              Next <i class="fa-solid fa-forward-step"></i>
+            </button>
+            <button class="btn btn-secondary btn-sm" id="btn-player-replay" title="Replay from start">
+              <i class="fa-solid fa-rotate-right"></i>
+            </button>
+
+            <div class="speed-selector">
+              <button class="speed-btn" data-speed="1600">0.7x</button>
+              <button class="speed-btn active" data-speed="1100">1.0x</button>
+              <button class="speed-btn" data-speed="700">1.5x</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bottom: Horizontal Filmstrip Scroller -->
+        <div class="filmstrip-card">
+          <div class="info-header">
+            <span>Gesture Sequence Breakdown</span>
+            <span id="filmstrip-count" style="font-size: 0.8rem; color: var(--accent-emerald-light);">0 Signs</span>
+          </div>
+          <div class="filmstrip-container" id="filmstrip-scroller">
+            <div style="color: var(--text-muted); font-size: 0.85rem; padding: 1rem;">Translate text above to inspect sign sequence filmstrip.</div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         Tab 3: Voice to Sign
+         ==================================================================== -->
+    <section class="tab-content" id="tab-voice-to-sign">
+      <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+        
+        <!-- Mic Hero Card -->
+        <div class="voice-hero-card">
+          <div>
+            <h2 style="font-family: var(--font-display); font-size: 1.8rem; font-weight: 800;">Voice to Indian Sign Language</h2>
+            <p style="color: var(--text-secondary); max-width: 540px; margin: 0.4rem auto 0; font-size: 0.95rem;">
+              Speak into your microphone in English or Hindi. Your voice is transcribed in real-time and converted directly into animated ISL gestures.
+            </p>
+          </div>
+
+          <div class="mic-action-wrap">
+            <button class="mic-main-btn" id="btn-voice-mic" title="Click to Speak">
+              <i class="fa-solid fa-microphone"></i>
+            </button>
+
+            <div class="audio-wave-visualizer" id="mic-wave-visualizer">
+              <div class="wave-bar"></div>
+              <div class="wave-bar"></div>
+              <div class="wave-bar"></div>
+              <div class="wave-bar"></div>
+              <div class="wave-bar"></div>
+            </div>
+
+            <span id="voice-mic-status" style="font-size: 0.85rem; font-weight: 700; color: var(--accent-emerald-light);">
+              Click Microphone to Start Speaking
+            </span>
+          </div>
+
+          <div class="voice-transcript-box" id="voice-transcript-box">
+            <span id="voice-transcript-text" style="color: var(--text-muted); font-style: italic;">Your spoken words will appear here...</span>
+          </div>
+
+          <!-- Quick Voice Simulators -->
+          <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; justify-content: center; align-items: center;">
+            <span style="font-size: 0.78rem; color: var(--text-muted); font-weight: 700;">Test Instant Phrases:</span>
+            <button class="phrase-chip voice-test-btn" data-voice="Hello, I need water">"Hello, I need water"</button>
+            <button class="phrase-chip voice-test-btn" data-voice="Thank you very much">"Thank you"</button>
+            <button class="phrase-chip voice-test-btn" data-voice="Please help me">"Please help"</button>
+            <button class="phrase-chip voice-test-btn" data-voice="Yes or No">"Yes or No"</button>
+          </div>
+        </div>
+
+        <!-- Embedded Voice-to-Sign Sequence Display -->
+        <div class="tts-layout-grid" id="voice-sign-display-area" style="display: none;">
+          <!-- Left: Voice Transcript Card -->
+          <div class="text-input-card">
+            <div class="card-topbar">
+              <div class="card-title">
+                <i class="fa-solid fa-microphone-lines" style="color: var(--accent-emerald);"></i>
+                <span>Recognized Speech Translation</span>
+              </div>
+            </div>
+            <div style="background: rgba(0,0,0,0.3); border-radius: var(--radius-md); padding: 1rem; border: 1px solid var(--border-subtle);">
+              <span style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700;">Spoken Sentence:</span>
+              <div id="voice-display-sentence" style="font-family: var(--font-display); font-size: 1.3rem; font-weight: 700; color: #fff; margin-top: 0.25rem;">-</div>
+            </div>
+            <button class="btn btn-secondary btn-sm" id="btn-replay-voice-sign">
+              <i class="fa-solid fa-rotate-right"></i> Replay Sign Gesture Sequence
+            </button>
+          </div>
+
+          <!-- Right: Player Stage for Voice Sign Display -->
+          <div class="sign-player-card">
+            <div class="player-stage" id="voice-player-stage">
+              <span class="stage-step-tag" id="voice-step-tag">Sign 0 of 0</span>
+              <span class="stage-hands-tag hand-tag one-hand" id="voice-hands-tag">1 Hand</span>
+              <img id="voice-sign-image" class="stage-sign-image" src="/static/assets/signs/HELLO.jpg" alt="Sign Pose">
+            </div>
+
+            <div class="player-meta-box">
+              <div class="player-sign-title" id="voice-sign-title">-</div>
+              <p class="player-sign-desc" id="voice-sign-desc">-</p>
+            </div>
+
+            <div class="player-timeline">
+              <div class="progress-track">
+                <div class="progress-bar-fill" id="voice-progress-bar"></div>
+              </div>
+            </div>
+
+            <div class="player-controls-row">
+              <button class="btn btn-outline btn-sm" id="btn-voice-prev"><i class="fa-solid fa-backward-step"></i></button>
+              <button class="btn btn-primary btn-sm" id="btn-voice-toggle" style="min-width: 100px;"><i class="fa-solid fa-play"></i> Play</button>
+              <button class="btn btn-outline btn-sm" id="btn-voice-next"><i class="fa-solid fa-forward-step"></i></button>
+            </div>
+          </div>
+
+          <!-- Filmstrip for Voice Signs -->
+          <div class="filmstrip-card">
+            <div class="info-header">
+              <span>Voice Gesture Filmstrip</span>
+              <span id="voice-filmstrip-count" style="font-size: 0.8rem; color: var(--accent-emerald-light);">0 Signs</span>
+            </div>
+            <div class="filmstrip-container" id="voice-filmstrip-scroller"></div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         Tab 4: Dataset Studio & Collector
          ==================================================================== -->
     <section class="tab-content" id="tab-studio">
       <div class="studio-grid">

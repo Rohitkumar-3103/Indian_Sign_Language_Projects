@@ -26,7 +26,22 @@ const AppState = {
   lastFpsTimestamp: Date.now(),
   practiceTarget: null,
   practiceHoldCount: 0,
-  bursting: false
+  bursting: false,
+
+  // Text to Sign Player State
+  ttsSequence: [],
+  ttsCurrentIndex: 0,
+  ttsPlaying: false,
+  ttsTimer: null,
+  ttsSpeed: 1100,
+
+  // Voice to Sign Player State
+  voiceRecognition: null,
+  voiceListening: false,
+  voiceSequence: [],
+  voiceCurrentIndex: 0,
+  voicePlaying: false,
+  voiceTimer: null
 };
 
 // DOM Elements
@@ -61,6 +76,8 @@ document.addEventListener("DOMContentLoaded", async () => {
   await loadMetrics();
   setupMediaPipe();
   setupCameraButtons();
+  setupTextToSign();
+  setupVoiceToSign();
   setupStudioControls();
   setupDictionary();
 });
@@ -592,7 +609,472 @@ function speakSentence() {
 }
 
 // ==========================================================================
-// Tab 2: Dataset Studio & Collector
+// Tab 2: Text to Sign Translation & Animation Player
+// ==========================================================================
+
+function setupTextToSign() {
+  const inputEl = document.getElementById("tts-input-text");
+  const translateBtn = document.getElementById("btn-translate-text");
+  const resetBtn = document.getElementById("btn-clear-tts-input");
+
+  if (!inputEl || !translateBtn) return;
+
+  translateBtn.addEventListener("click", () => {
+    translateTextToSigns(inputEl.value.trim());
+  });
+
+  resetBtn.addEventListener("click", () => {
+    inputEl.value = "";
+    AppState.ttsSequence = [];
+    renderSignPlayer(null, 0, 0);
+    renderFilmstrip([]);
+  });
+
+  // Preset phrase chips
+  document.querySelectorAll(".tts-preset-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      inputEl.value = btn.getAttribute("data-phrase");
+      translateTextToSigns(inputEl.value);
+    });
+  });
+
+  // Player controls
+  document.getElementById("btn-player-toggle").addEventListener("click", toggleTtsPlayback);
+  document.getElementById("btn-player-prev").addEventListener("click", prevTtsSign);
+  document.getElementById("btn-player-next").addEventListener("click", nextTtsSign);
+  document.getElementById("btn-player-replay").addEventListener("click", () => {
+    AppState.ttsCurrentIndex = 0;
+    playTtsSequence();
+  });
+
+  // Speed selector
+  document.querySelectorAll(".speed-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll(".speed-btn").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      AppState.ttsSpeed = parseInt(btn.getAttribute("data-speed"), 10) || 1100;
+      if (AppState.ttsPlaying) {
+        clearInterval(AppState.ttsTimer);
+        AppState.ttsTimer = setInterval(advanceTtsSign, AppState.ttsSpeed);
+      }
+    });
+  });
+
+  // Initial translation
+  if (inputEl.value.trim()) {
+    translateTextToSigns(inputEl.value.trim());
+  }
+}
+
+async function translateTextToSigns(text) {
+  if (!text) {
+    showToast("Please enter some text to translate", "error");
+    return;
+  }
+
+  try {
+    const res = await fetch("/api/text_to_sign", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text: text })
+    });
+    const data = await res.json();
+
+    if (!data.sequence || data.sequence.length === 0) {
+      showToast("No matching signs found for this input.", "error");
+      return;
+    }
+
+    AppState.ttsSequence = data.sequence;
+    AppState.ttsCurrentIndex = 0;
+
+    renderSignPlayer(AppState.ttsSequence[0], 0, AppState.ttsSequence.length);
+    renderFilmstrip(AppState.ttsSequence);
+    showToast(`Translated "${text}" into ${data.total_signs} gestures!`);
+
+    // Auto-play the sequence
+    playTtsSequence();
+  } catch (err) {
+    console.error("Text to sign translation error:", err);
+    showToast("Translation request failed.", "error");
+  }
+}
+
+function renderSignPlayer(signData, currentIndex, totalSigns) {
+  const stage = document.getElementById("player-stage");
+  const stepTag = document.getElementById("player-step-tag");
+  const handsTag = document.getElementById("player-hands-tag");
+  const imgEl = document.getElementById("player-sign-image");
+  const titleEl = document.getElementById("player-sign-title");
+  const descEl = document.getElementById("player-sign-desc");
+  const progBar = document.getElementById("player-progress-bar");
+
+  if (!signData) {
+    stepTag.textContent = "Sign 0 of 0";
+    titleEl.textContent = "-";
+    descEl.textContent = "Enter text above and click translate to start.";
+    progBar.style.width = "0%";
+    return;
+  }
+
+  stepTag.textContent = `Sign ${currentIndex + 1} of ${totalSigns}`;
+  handsTag.textContent = signData.hands === 2 ? "2 Hands" : "1 Hand";
+  handsTag.className = `stage-hands-tag hand-tag ${signData.hands === 2 ? "two-hand" : "one-hand"}`;
+
+  imgEl.src = signData.image_url;
+  imgEl.classList.remove("anim-pop");
+  void imgEl.offsetWidth; // trigger reflow
+  imgEl.classList.add("anim-pop");
+
+  titleEl.textContent = signData.token === signData.sign_key ? signData.name : `${signData.token} (${signData.name})`;
+  descEl.textContent = signData.description || "Perform the designated hand pose.";
+
+  const progressPct = ((currentIndex + 1) / totalSigns) * 100;
+  progBar.style.width = `${progressPct}%`;
+
+  // Highlight filmstrip item
+  document.querySelectorAll("#filmstrip-scroller .filmstrip-thumb").forEach((thumb, idx) => {
+    thumb.classList.toggle("active", idx === currentIndex);
+    if (idx === currentIndex) {
+      thumb.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
+    }
+  });
+}
+
+function renderFilmstrip(sequence) {
+  const container = document.getElementById("filmstrip-scroller");
+  const countEl = document.getElementById("filmstrip-count");
+  container.innerHTML = "";
+  countEl.textContent = `${sequence.length} Signs`;
+
+  if (sequence.length === 0) {
+    container.innerHTML = `<div style="color: var(--text-muted); font-size: 0.85rem; padding: 1rem;">Translate text above to inspect sign sequence filmstrip.</div>`;
+    return;
+  }
+
+  sequence.forEach((s, idx) => {
+    const thumb = document.createElement("div");
+    thumb.className = `filmstrip-thumb ${idx === 0 ? "active" : ""}`;
+    thumb.innerHTML = `
+      <img src="${s.image_url}" alt="${s.token}">
+      <span class="filmstrip-thumb-label">${s.token}</span>
+      <span style="font-size: 0.65rem; color: var(--text-muted);">${s.hands === 2 ? "2H" : "1H"}</span>
+    `;
+
+    thumb.addEventListener("click", () => {
+      pauseTtsSequence();
+      AppState.ttsCurrentIndex = idx;
+      renderSignPlayer(AppState.ttsSequence[idx], idx, AppState.ttsSequence.length);
+    });
+
+    container.appendChild(thumb);
+  });
+}
+
+function toggleTtsPlayback() {
+  if (AppState.ttsPlaying) {
+    pauseTtsSequence();
+  } else {
+    playTtsSequence();
+  }
+}
+
+function playTtsSequence() {
+  if (!AppState.ttsSequence || AppState.ttsSequence.length === 0) return;
+
+  AppState.ttsPlaying = true;
+  document.getElementById("player-stage").classList.add("playing");
+  document.getElementById("btn-player-toggle").innerHTML = '<i class="fa-solid fa-pause"></i> Pause';
+
+  clearInterval(AppState.ttsTimer);
+  AppState.ttsTimer = setInterval(advanceTtsSign, AppState.ttsSpeed);
+}
+
+function pauseTtsSequence() {
+  AppState.ttsPlaying = false;
+  document.getElementById("player-stage").classList.remove("playing");
+  document.getElementById("btn-player-toggle").innerHTML = '<i class="fa-solid fa-play"></i> Play';
+  clearInterval(AppState.ttsTimer);
+}
+
+function advanceTtsSign() {
+  if (AppState.ttsCurrentIndex + 1 < AppState.ttsSequence.length) {
+    AppState.ttsCurrentIndex++;
+    renderSignPlayer(AppState.ttsSequence[AppState.ttsCurrentIndex], AppState.ttsCurrentIndex, AppState.ttsSequence.length);
+  } else {
+    pauseTtsSequence();
+  }
+}
+
+function prevTtsSign() {
+  pauseTtsSequence();
+  if (AppState.ttsCurrentIndex > 0) {
+    AppState.ttsCurrentIndex--;
+    renderSignPlayer(AppState.ttsSequence[AppState.ttsCurrentIndex], AppState.ttsCurrentIndex, AppState.ttsSequence.length);
+  }
+}
+
+function nextTtsSign() {
+  pauseTtsSequence();
+  if (AppState.ttsCurrentIndex + 1 < AppState.ttsSequence.length) {
+    AppState.ttsCurrentIndex++;
+    renderSignPlayer(AppState.ttsSequence[AppState.ttsCurrentIndex], AppState.ttsCurrentIndex, AppState.ttsSequence.length);
+  }
+}
+
+// ==========================================================================
+// Tab 3: Voice to Sign Recognition & Translation
+// ==========================================================================
+
+function setupVoiceToSign() {
+  const micBtn = document.getElementById("btn-voice-mic");
+  const waveVis = document.getElementById("mic-wave-visualizer");
+  const statusEl = document.getElementById("voice-mic-status");
+  const transcriptEl = document.getElementById("voice-transcript-text");
+
+  if (!micBtn) return;
+
+  const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+  if (SpeechRec) {
+    AppState.voiceRecognition = new SpeechRec();
+    AppState.voiceRecognition.continuous = false;
+    AppState.voiceRecognition.interimResults = true;
+    AppState.voiceRecognition.lang = "en-IN";
+
+    AppState.voiceRecognition.onstart = () => {
+      AppState.voiceListening = true;
+      micBtn.classList.add("listening");
+      waveVis.querySelectorAll(".wave-bar").forEach(b => b.classList.add("active"));
+      statusEl.textContent = "Listening... Speak clearly now";
+      statusEl.style.color = "var(--accent-rose)";
+    };
+
+    AppState.voiceRecognition.onresult = (event) => {
+      let interimTranscript = "";
+      let finalTranscript = "";
+
+      for (let i = event.resultIndex; i < event.results.length; ++i) {
+        if (event.results[i].isFinal) {
+          finalTranscript += event.results[i][0].transcript;
+        } else {
+          interimTranscript += event.results[i][0].transcript;
+        }
+      }
+
+      transcriptEl.textContent = finalTranscript || interimTranscript || "Listening...";
+      transcriptEl.style.color = "#fff";
+      transcriptEl.style.fontStyle = "normal";
+
+      if (finalTranscript) {
+        processSpokenVoice(finalTranscript.trim());
+      }
+    };
+
+    AppState.voiceRecognition.onerror = (event) => {
+      console.warn("Speech recognition error:", event.error);
+      stopVoiceListening();
+      statusEl.textContent = `Mic status: ${event.error}. Use quick test phrases below!`;
+      statusEl.style.color = "var(--accent-amber)";
+    };
+
+    AppState.voiceRecognition.onend = () => {
+      stopVoiceListening();
+    };
+
+    micBtn.addEventListener("click", () => {
+      if (AppState.voiceListening) {
+        AppState.voiceRecognition.stop();
+        stopVoiceListening();
+      } else {
+        try {
+          AppState.voiceRecognition.start();
+        } catch (e) {
+          console.warn("Speech recognition start error:", e);
+        }
+      }
+    });
+  } else {
+    statusEl.textContent = "Speech recognition not natively supported. Use quick test phrases below!";
+    micBtn.addEventListener("click", () => {
+      showToast("Speech Recognition API not supported in this browser. Try the quick buttons below!", "error");
+    });
+  }
+
+  function stopVoiceListening() {
+    AppState.voiceListening = false;
+    micBtn.classList.remove("listening");
+    waveVis.querySelectorAll(".wave-bar").forEach(b => b.classList.remove("active"));
+    statusEl.textContent = "Click Microphone to Start Speaking";
+    statusEl.style.color = "var(--accent-emerald-light)";
+  }
+
+  // Quick test voice buttons
+  document.querySelectorAll(".voice-test-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const phrase = btn.getAttribute("data-voice");
+      transcriptEl.textContent = `"${phrase}"`;
+      transcriptEl.style.color = "#fff";
+      transcriptEl.style.fontStyle = "normal";
+      processSpokenVoice(phrase);
+    });
+  });
+
+  // Replay voice sign sequence button
+  document.getElementById("btn-replay-voice-sign").addEventListener("click", () => {
+    AppState.voiceCurrentIndex = 0;
+    playVoiceSequence();
+  });
+
+  document.getElementById("btn-voice-toggle").addEventListener("click", toggleVoicePlayback);
+  document.getElementById("btn-voice-prev").addEventListener("click", prevVoiceSign);
+  document.getElementById("btn-voice-next").addEventListener("click", nextVoiceSign);
+}
+
+async function processSpokenVoice(spokenText) {
+  if (!spokenText) return;
+
+  const displayArea = document.getElementById("voice-sign-display-area");
+  document.getElementById("voice-display-sentence").textContent = spokenText;
+  displayArea.style.display = "grid";
+
+  try {
+    const res = await fetch("/api/text_to_sign", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text: spokenText })
+    });
+    const data = await res.json();
+
+    if (!data.sequence || data.sequence.length === 0) {
+      showToast("No signs found for spoken phrase.", "error");
+      return;
+    }
+
+    AppState.voiceSequence = data.sequence;
+    AppState.voiceCurrentIndex = 0;
+
+    renderVoicePlayer(AppState.voiceSequence[0], 0, AppState.voiceSequence.length);
+    renderVoiceFilmstrip(AppState.voiceSequence);
+    showToast(`Voice translated: "${spokenText}" (${data.total_signs} gestures)`);
+
+    // Auto-scroll and auto-play
+    displayArea.scrollIntoView({ behavior: "smooth", block: "start" });
+    playVoiceSequence();
+  } catch (err) {
+    console.error("Voice sign translation error:", err);
+  }
+}
+
+function renderVoicePlayer(signData, currentIndex, totalSigns) {
+  const stage = document.getElementById("voice-player-stage");
+  const stepTag = document.getElementById("voice-step-tag");
+  const handsTag = document.getElementById("voice-hands-tag");
+  const imgEl = document.getElementById("voice-sign-image");
+  const titleEl = document.getElementById("voice-sign-title");
+  const descEl = document.getElementById("voice-sign-desc");
+  const progBar = document.getElementById("voice-progress-bar");
+
+  if (!signData) return;
+
+  stepTag.textContent = `Sign ${currentIndex + 1} of ${totalSigns}`;
+  handsTag.textContent = signData.hands === 2 ? "2 Hands" : "1 Hand";
+  handsTag.className = `stage-hands-tag hand-tag ${signData.hands === 2 ? "two-hand" : "one-hand"}`;
+
+  imgEl.src = signData.image_url;
+  imgEl.classList.remove("anim-pop");
+  void imgEl.offsetWidth;
+  imgEl.classList.add("anim-pop");
+
+  titleEl.textContent = signData.token === signData.sign_key ? signData.name : `${signData.token} (${signData.name})`;
+  descEl.textContent = signData.description || "Hold gesture posture.";
+
+  const progressPct = ((currentIndex + 1) / totalSigns) * 100;
+  progBar.style.width = `${progressPct}%`;
+
+  document.querySelectorAll("#voice-filmstrip-scroller .filmstrip-thumb").forEach((thumb, idx) => {
+    thumb.classList.toggle("active", idx === currentIndex);
+    if (idx === currentIndex) {
+      thumb.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
+    }
+  });
+}
+
+function renderVoiceFilmstrip(sequence) {
+  const container = document.getElementById("voice-filmstrip-scroller");
+  const countEl = document.getElementById("voice-filmstrip-count");
+  container.innerHTML = "";
+  countEl.textContent = `${sequence.length} Signs`;
+
+  sequence.forEach((s, idx) => {
+    const thumb = document.createElement("div");
+    thumb.className = `filmstrip-thumb ${idx === 0 ? "active" : ""}`;
+    thumb.innerHTML = `
+      <img src="${s.image_url}" alt="${s.token}">
+      <span class="filmstrip-thumb-label">${s.token}</span>
+      <span style="font-size: 0.65rem; color: var(--text-muted);">${s.hands === 2 ? "2H" : "1H"}</span>
+    `;
+
+    thumb.addEventListener("click", () => {
+      pauseVoiceSequence();
+      AppState.voiceCurrentIndex = idx;
+      renderVoicePlayer(AppState.voiceSequence[idx], idx, AppState.voiceSequence.length);
+    });
+
+    container.appendChild(thumb);
+  });
+}
+
+function toggleVoicePlayback() {
+  if (AppState.voicePlaying) {
+    pauseVoiceSequence();
+  } else {
+    playVoiceSequence();
+  }
+}
+
+function playVoiceSequence() {
+  if (!AppState.voiceSequence || AppState.voiceSequence.length === 0) return;
+  AppState.voicePlaying = true;
+  document.getElementById("voice-player-stage").classList.add("playing");
+  document.getElementById("btn-voice-toggle").innerHTML = '<i class="fa-solid fa-pause"></i> Pause';
+
+  clearInterval(AppState.voiceTimer);
+  AppState.voiceTimer = setInterval(() => {
+    if (AppState.voiceCurrentIndex + 1 < AppState.voiceSequence.length) {
+      AppState.voiceCurrentIndex++;
+      renderVoicePlayer(AppState.voiceSequence[AppState.voiceCurrentIndex], AppState.voiceCurrentIndex, AppState.voiceSequence.length);
+    } else {
+      pauseVoiceSequence();
+    }
+  }, 1100);
+}
+
+function pauseVoiceSequence() {
+  AppState.voicePlaying = false;
+  document.getElementById("voice-player-stage").classList.remove("playing");
+  document.getElementById("btn-voice-toggle").innerHTML = '<i class="fa-solid fa-play"></i> Play';
+  clearInterval(AppState.voiceTimer);
+}
+
+function prevVoiceSign() {
+  pauseVoiceSequence();
+  if (AppState.voiceCurrentIndex > 0) {
+    AppState.voiceCurrentIndex--;
+    renderVoicePlayer(AppState.voiceSequence[AppState.voiceCurrentIndex], AppState.voiceCurrentIndex, AppState.voiceSequence.length);
+  }
+}
+
+function nextVoiceSign() {
+  pauseVoiceSequence();
+  if (AppState.voiceCurrentIndex + 1 < AppState.voiceSequence.length) {
+    AppState.voiceCurrentIndex++;
+    renderVoicePlayer(AppState.voiceSequence[AppState.voiceCurrentIndex], AppState.voiceCurrentIndex, AppState.voiceSequence.length);
+  }
+}
+
+// ==========================================================================
+// Tab 4: Dataset Studio & Collector
 // ==========================================================================
 
 function renderStudioClassSelector() {

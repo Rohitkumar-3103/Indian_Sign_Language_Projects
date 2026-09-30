@@ -8,25 +8,35 @@ Designed and synthesized directly based on the research papers located in the re
 
 ## 🌟 Key Features
 
-1. **Real-Time ISL Translation (Sign-to-Text & Speech)**
+1. **Sign to Text (& Speech Translation)**
    - Live camera detection with 3D MediaPipe hand landmark tracking.
    - Dual-color skeleton rendering: **Neon Emerald** for right hand, **Electric Cyan** for left hand.
    - Live HUD with recognized sign symbol, gesture name, and dynamic confidence gauge.
    - **Smart Sentence Buffer**: Debounced letter accumulator that builds words without stutter.
    - **Text-to-Speech (TTS)**: One-click natural voice readout of recognized sentences.
 
-2. **Complete ML Pipeline & Dataset Studio**
+2. **Text to Sign (Animated ISL Translation & Player)**
+   - Translate any English or Hindi text into standard Indian Sign Language gestures.
+   - Recognizes whole-word signs (e.g. `HELLO`, `THANK YOU`, `YES`, `NO`, `PLEASE`, `HELP`, `WATER`, `FOOD`, `I LOVE YOU`) and finger-spells names/words letter-by-letter (`A-Z`, `0-9`).
+   - Interactive Sign Player with Play/Pause, step-by-step navigation, adjustable playback speeds (`0.7x`, `1.0x`, `1.5x`), and a scrollable filmstrip carousel.
+
+3. **Voice to Sign (Speech-to-Sign Recognition)**
+   - Real-time microphone speech recognition (English `en-IN` & Hindi `hi-IN`).
+   - Live pulsating audio visualizer waves.
+   - Transcribes spoken speech into text and immediately plays the corresponding Indian Sign Language gesture sequence!
+
+4. **Complete ML Pipeline & Dataset Studio**
    - Interactive web-based and CLI-based dataset collectors.
    - Visual countdown bursts (30 samples @ 11 FPS) for rapid class data collection.
    - Normalized 156-dimensional feature vector invariant to camera distance, translation, and scale.
    - Live **"Retrain Model Now"** button with in-memory model hot-reloading (zero server restart needed).
 
-3. **Interactive ISL Dictionary & Practice Arena**
+5. **Interactive ISL Dictionary & Practice Arena**
    - Searchable visual sign dictionary for Alphabets (A-Z), Digits (0-9), and Words.
    - Anatomical posture descriptions and tips based on standard ISLRTC conventions.
    - **"Practice In Camera" Challenge Mode**: Perform the target sign in front of your camera with real-time pose validation and celebratory confetti rewards!
 
-4. **Research Benchmark & Architecture Dashboard**
+6. **Research Benchmark & Architecture Dashboard**
    - Synthesis of 16 peer-reviewed ISL research papers in the repository.
    - Architectural comparisons across MediaPipe, CNNs, LSTMs, and Random Forest classifiers.
    - Stratified evaluation metrics (Accuracy, Precision, Recall, F1-Score, Confusion Matrix).
