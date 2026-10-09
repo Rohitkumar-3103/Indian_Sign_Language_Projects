@@ -207,38 +207,86 @@ class ISLFeatureExtractor:
         return features, hands_data
 
     def draw_landmarks_on_frame(self, frame, hands_data):
-        """Draws skeleton on OpenCV frame with dual-hand styling."""
+        """Draws upgraded cyberpunk skeleton on OpenCV frame with dual-hand styling and bimanual links."""
         connections = [
             (0, 1), (1, 2), (2, 3), (3, 4),        # Thumb
             (0, 5), (5, 6), (6, 7), (7, 8),        # Index
-            (5, 9), (9, 10), (10, 11), (11, 12),   # Middle
+            (0, 9), (5, 9), (9, 10), (10, 11), (11, 12), # Middle & Palm
             (9, 13), (13, 14), (14, 15), (15, 16), # Ring
-            (13, 17), (17, 18), (18, 19), (19, 20),# Pinky
-            (0, 17)                                 # Palm base
+            (0, 17), (13, 17), (17, 18), (18, 19), (19, 20) # Pinky & Palm Outer
         ]
 
-        for hand in hands_data.get("hands", []):
+        hands = hands_data.get("hands", [])
+        for hand in hands:
             pts = hand["pixel_pts"]
             label = hand["label"]
             score = hand["score"]
             bbox = hand["bbox"]
 
             color = (129, 185, 16) if label == "Right" else (212, 182, 6) # BGR
+            light_color = (180, 235, 100) if label == "Right" else (240, 215, 100)
             joint_color = (255, 255, 255)
 
-            cv2.rectangle(frame, (bbox[0], bbox[1]), (bbox[2], bbox[3]), color, 2)
-            cv2.putText(frame, f"{label} ({int(score*100)}%)", (bbox[0], max(20, bbox[1] - 8)),
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.55, color, 2)
+            # Translucent Palm Polygon
+            if len(pts) >= 21:
+                palm_pts = np.array([pts[0], pts[1], pts[5], pts[9], pts[13], pts[17]], dtype=np.int32)
+                overlay = frame.copy()
+                cv2.fillPoly(overlay, [palm_pts], color)
+                cv2.addWeighted(overlay, 0.18, frame, 0.82, 0, frame)
 
+            # Sci-Fi Corner Brackets
+            bx1, by1, bx2, by2 = bbox
+            c_len = 14
+            # Top-left
+            cv2.line(frame, (bx1, by1), (bx1 + c_len, by1), color, 2, cv2.LINE_AA)
+            cv2.line(frame, (bx1, by1), (bx1, by1 + c_len), color, 2, cv2.LINE_AA)
+            # Top-right
+            cv2.line(frame, (bx2, by1), (bx2 - c_len, by1), color, 2, cv2.LINE_AA)
+            cv2.line(frame, (bx2, by1), (bx2, by1 + c_len), color, 2, cv2.LINE_AA)
+            # Bottom-left
+            cv2.line(frame, (bx1, by2), (bx1 + c_len, by2), color, 2, cv2.LINE_AA)
+            cv2.line(frame, (bx1, by2), (bx1, by2 - c_len), color, 2, cv2.LINE_AA)
+            # Bottom-right
+            cv2.line(frame, (bx2, by2), (bx2 - c_len, by2), color, 2, cv2.LINE_AA)
+            cv2.line(frame, (bx2, by2), (bx2, by2 - c_len), color, 2, cv2.LINE_AA)
+
+            # Floating Tag Badge
+            tag_text = f"{label.upper()} ({int(score*100)}%)"
+            (tw, th), _ = cv2.getTextSize(tag_text, cv2.FONT_HERSHEY_SIMPLEX, 0.45, 1)
+            cv2.rectangle(frame, (bx1, max(18, by1 - 20)), (bx1 + tw + 10, max(18, by1)), (20, 24, 30), -1)
+            cv2.rectangle(frame, (bx1, max(18, by1 - 20)), (bx1 + tw + 10, max(18, by1)), color, 1)
+            cv2.putText(frame, tag_text, (bx1 + 5, max(14, by1 - 6)), cv2.FONT_HERSHEY_SIMPLEX, 0.42, light_color, 1, cv2.LINE_AA)
+
+            # Glow bone lines + Core lines
             for conn in connections:
                 if conn[0] < len(pts) and conn[1] < len(pts):
                     p1 = tuple(pts[conn[0]])
                     p2 = tuple(pts[conn[1]])
-                    cv2.line(frame, p1, p2, color, 2, cv2.LINE_AA)
+                    cv2.line(frame, p1, p2, color, 4, cv2.LINE_AA)
+                    cv2.line(frame, p1, p2, light_color, 2, cv2.LINE_AA)
 
-            for pt in pts:
-                cv2.circle(frame, tuple(pt), 4, joint_color, -1, cv2.LINE_AA)
-                cv2.circle(frame, tuple(pt), 5, color, 1, cv2.LINE_AA)
+            # Differentiated Radiant Joints
+            tip_indices = [4, 8, 12, 16, 20]
+            for i, pt in enumerate(pts):
+                pt_t = tuple(pt)
+                if i in tip_indices:
+                    cv2.circle(frame, pt_t, 8, color, 1, cv2.LINE_AA)
+                    cv2.circle(frame, pt_t, 4, joint_color, -1, cv2.LINE_AA)
+                elif i == 0:
+                    cv2.circle(frame, pt_t, 7, light_color, 2, cv2.LINE_AA)
+                    cv2.circle(frame, pt_t, 3, color, -1, cv2.LINE_AA)
+                else:
+                    cv2.circle(frame, pt_t, 4, joint_color, -1, cv2.LINE_AA)
+                    cv2.circle(frame, pt_t, 4, color, 1, cv2.LINE_AA)
+
+        # Bimanual Inter-Wrist Connection Link
+        if len(hands) >= 2 and len(hands[0]["pixel_pts"]) > 0 and len(hands[1]["pixel_pts"]) > 0:
+            w1 = tuple(hands[0]["pixel_pts"][0])
+            w2 = tuple(hands[1]["pixel_pts"][0])
+            dist = int(np.hypot(w1[0] - w2[0], w1[1] - w2[1]))
+            cv2.line(frame, w1, w2, (200, 200, 200), 1, cv2.LINE_AA)
+            mid = ((w1[0] + w2[0]) // 2, (w1[1] + w2[1]) // 2)
+            cv2.putText(frame, f"d={dist}px", mid, cv2.FONT_HERSHEY_SIMPLEX, 0.4, (200, 200, 200), 1, cv2.LINE_AA)
 
         return frame
 

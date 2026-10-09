@@ -17,10 +17,12 @@ const AppState = {
   mpHands: null,
   mpCamera: null,
   sentence: "",
-  lastPrediction: null,
+  predictionBuffer: [],
+  activeVotedSymbol: null,
   predictionHoldCount: 0,
-  HOLD_THRESHOLD: 8, // ~0.5s hold to register symbol
+  HOLD_THRESHOLD: 6, // ~350-450ms hold to register symbol
   lastAddedSymbol: null,
+  commitCooldownUntil: 0,
   fps: 0,
   frameCount: 0,
   lastFpsTimestamp: Date.now(),
@@ -34,6 +36,7 @@ const AppState = {
   ttsPlaying: false,
   ttsTimer: null,
   ttsSpeed: 1100,
+  ttsMediaMode: "video",
 
   // Voice to Sign Player State
   voiceRecognition: null,
@@ -41,7 +44,8 @@ const AppState = {
   voiceSequence: [],
   voiceCurrentIndex: 0,
   voicePlaying: false,
-  voiceTimer: null
+  voiceTimer: null,
+  voiceMediaMode: "video"
 };
 
 // DOM Elements
@@ -54,9 +58,12 @@ const cameraStatusBadge = document.getElementById("camera-status-badge");
 const hudOverlay = document.getElementById("gesture-overlay");
 const hudSymbol = document.getElementById("hud-symbol");
 const hudName = document.getElementById("hud-name");
+const hudHoldBar = document.getElementById("hud-hold-bar");
+const hudCommitBadge = document.getElementById("hud-commit-badge");
 const hudConfBar = document.getElementById("hud-confidence-bar");
 const hudConfVal = document.getElementById("hud-confidence-val");
 const sentenceTextEl = document.getElementById("sentence-text");
+const sentenceDisplayBox = document.getElementById("sentence-display-box");
 const predictionsListEl = document.getElementById("predictions-list");
 const toastContainer = document.getElementById("toast-container");
 
@@ -78,9 +85,11 @@ document.addEventListener("DOMContentLoaded", async () => {
   setupCameraButtons();
   setupTextToSign();
   setupVoiceToSign();
+  setupYouTubeToSign();
   setupStudioControls();
   setupDictionary();
 });
+
 
 // Toast Notifications
 function showToast(message, type = "success") {
@@ -95,6 +104,32 @@ function showToast(message, type = "success") {
     toast.style.transition = "all 0.3s ease";
     setTimeout(() => toast.remove(), 300);
   }, 3500);
+}
+
+// Native Web Audio Synth Chime for responsive, futuristic audio feedback on commit
+function playCommitChime() {
+  try {
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContextClass) return;
+    const ctx = new AudioContextClass();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    osc.type = "sine";
+    const now = ctx.currentTime;
+    osc.frequency.setValueAtTime(880, now); // A5 note
+    osc.frequency.exponentialRampToValueAtTime(1318.5, now + 0.08); // E6 note
+
+    gain.gain.setValueAtTime(0.06, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.14);
+
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start(now);
+    osc.stop(now + 0.15);
+  } catch (err) {
+    // Audio autoplay or permissions deferred
+  }
 }
 
 // ==========================================================================
@@ -133,6 +168,10 @@ async function loadClasses() {
     const res = await fetch("/api/classes");
     const data = await res.json();
     AppState.classes = data.classes || {};
+    if (data.total_samples) {
+      const totEl = document.getElementById("studio-total-samples");
+      if (totEl) totEl.textContent = Number(data.total_samples).toLocaleString();
+    }
     renderStudioClassSelector();
     renderDictionary();
     updateStudioClassView(AppState.activeClass);
@@ -318,6 +357,9 @@ async function onMediaPipeResults(results) {
 
       drawHandSkeleton(canvasCtx, landmarks, handedness, canvasEl.width, canvasEl.height);
     }
+    if (numHands >= 2) {
+      drawBimanualInteraction(canvasCtx, results.multiHandLandmarks[0], results.multiHandLandmarks[1], canvasEl.width, canvasEl.height);
+    }
   }
 
   canvasCtx.restore();
@@ -349,7 +391,14 @@ async function onMediaPipeResults(results) {
     }
   } else if (numHands === 0) {
     hudOverlay.style.display = "none";
+    AppState.predictionBuffer = [];
     AppState.predictionHoldCount = 0;
+    AppState.activeVotedSymbol = null;
+    if (hudHoldBar) hudHoldBar.style.width = "0%";
+    if (hudCommitBadge) {
+      hudCommitBadge.className = "hud-commit-badge";
+      hudCommitBadge.innerHTML = '<i class="fa-solid fa-hand"></i> STEADY HAND';
+    }
   }
 }
 
@@ -397,54 +446,323 @@ async function serverProcessingLoop() {
 const CONNECTIONS = [
   [0, 1], [1, 2], [2, 3], [3, 4],        // Thumb
   [0, 5], [5, 6], [6, 7], [7, 8],        // Index
-  [5, 9], [9, 10], [10, 11], [11, 12],   // Middle
+  [0, 9], [5, 9], [9, 10], [10, 11], [11, 12], // Middle & Palm Web
   [9, 13], [13, 14], [14, 15], [15, 16], // Ring
-  [13, 17], [17, 18], [18, 19], [19, 20],// Pinky
-  [0, 17]                                // Base
+  [0, 17], [13, 17], [17, 18], [18, 19], [19, 20] // Pinky & Outer Palm
 ];
 
+const FINGER_PALETTES = {
+  Right: {
+    core: "#10b981",       // Neon Emerald
+    glow: "#059669",
+    light: "#34d399",
+    bg: "rgba(16, 185, 129, 0.12)",
+    label: "R • DOMINANT"
+  },
+  Left: {
+    core: "#06b6d4",       // Electric Cyan
+    glow: "#0891b2",
+    light: "#38bdf8",
+    bg: "rgba(6, 182, 212, 0.12)",
+    label: "L • SECONDARY"
+  }
+};
+
 function drawHandSkeleton(ctx, landmarks, label, w, h) {
-  // Right hand = Emerald, Left hand = Cyan
-  const boneColor = label === "Right" ? "#10b981" : "#06b6d4";
-  const jointColor = "#ffffff";
+  if (!landmarks || landmarks.length < 21) return;
+  const isRight = label === "Right";
+  const palette = isRight ? FINGER_PALETTES.Right : FINGER_PALETTES.Left;
 
-  ctx.lineWidth = 3;
-  ctx.strokeStyle = boneColor;
+  ctx.save();
+
+  // 1. Holographic Translucent Palm Mesh Polygon
+  ctx.beginPath();
+  const palmIndices = [0, 1, 5, 9, 13, 17];
+  ctx.moveTo(landmarks[0].x * w, landmarks[0].y * h);
+  for (let i = 1; i < palmIndices.length; i++) {
+    const idx = palmIndices[i];
+    ctx.lineTo(landmarks[idx].x * w, landmarks[idx].y * h);
+  }
+  ctx.closePath();
+  ctx.fillStyle = palette.bg;
+  ctx.fill();
+
+  // 2. Pass 1: Outer Neon Glow Laser Bones
+  ctx.shadowColor = palette.core;
+  ctx.shadowBlur = 14;
+  ctx.lineWidth = 5.5;
+  ctx.strokeStyle = palette.glow;
   ctx.lineCap = "round";
+  ctx.lineJoin = "round";
 
-  // Draw Bones
   CONNECTIONS.forEach(([start, end]) => {
     const p1 = landmarks[start];
     const p2 = landmarks[end];
-    ctx.beginPath();
-    ctx.moveTo(p1.x * w, p1.y * h);
-    ctx.lineTo(p2.x * w, p2.y * h);
-    ctx.stroke();
+    if (p1 && p2) {
+      ctx.beginPath();
+      ctx.moveTo(p1.x * w, p1.y * h);
+      ctx.lineTo(p2.x * w, p2.y * h);
+      ctx.stroke();
+    }
   });
 
-  // Draw Joints
+  // 3. Pass 2: High-Contrast Crisp Core Laser
+  ctx.shadowBlur = 0;
+  ctx.lineWidth = 2.4;
+  ctx.strokeStyle = palette.light;
+
+  CONNECTIONS.forEach(([start, end]) => {
+    const p1 = landmarks[start];
+    const p2 = landmarks[end];
+    if (p1 && p2) {
+      ctx.beginPath();
+      ctx.moveTo(p1.x * w, p1.y * h);
+      ctx.lineTo(p2.x * w, p2.y * h);
+      ctx.stroke();
+    }
+  });
+
+  // 4. Radiant Multi-Scale Joints & Sensors
+  const tipIndices = [4, 8, 12, 16, 20];
   landmarks.forEach((pt, i) => {
     const px = pt.x * w;
     const py = pt.y * h;
-    const radius = [4, 8, 12, 16, 20].includes(i) ? 5.5 : 4; // Bigger fingertips
+
+    if (tipIndices.includes(i)) {
+      // Fingertip Target Reticle
+      ctx.save();
+      // Outer radar aura
+      ctx.beginPath();
+      ctx.arc(px, py, 9, 0, 2 * Math.PI);
+      ctx.strokeStyle = palette.core;
+      ctx.lineWidth = 1.6;
+      ctx.stroke();
+
+      // Glowing solid core
+      ctx.beginPath();
+      ctx.arc(px, py, 4.5, 0, 2 * Math.PI);
+      ctx.fillStyle = "#ffffff";
+      ctx.shadowColor = palette.light;
+      ctx.shadowBlur = 10;
+      ctx.fill();
+      ctx.restore();
+    } else if (i === 0) {
+      // Wrist Anatomical Anchor Hub
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(px, py, 8, 0, 2 * Math.PI);
+      ctx.strokeStyle = palette.light;
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.arc(px, py, 4, 0, 2 * Math.PI);
+      ctx.fillStyle = palette.core;
+      ctx.fill();
+      ctx.restore();
+    } else {
+      // Articulated Knuckle Nodes
+      ctx.beginPath();
+      ctx.arc(px, py, 3.2, 0, 2 * Math.PI);
+      ctx.fillStyle = "#ffffff";
+      ctx.fill();
+
+      ctx.beginPath();
+      ctx.arc(px, py, 4.4, 0, 2 * Math.PI);
+      ctx.strokeStyle = palette.core;
+      ctx.lineWidth = 1.2;
+      ctx.stroke();
+    }
+  });
+
+  // 5. Sci-Fi HUD Corner Brackets & Floating Tag
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  landmarks.forEach(p => {
+    const x = p.x * w;
+    const y = p.y * h;
+    if (x < minX) minX = x;
+    if (y < minY) minY = y;
+    if (x > maxX) maxX = x;
+    if (y > maxY) maxY = y;
+  });
+
+  const pad = 14;
+  const bx1 = Math.max(6, minX - pad);
+  const by1 = Math.max(6, minY - pad);
+  const bx2 = Math.min(w - 6, maxX + pad);
+  const by2 = Math.min(h - 6, maxY + pad);
+  const cornerLen = 14;
+
+  ctx.strokeStyle = palette.core;
+  ctx.lineWidth = 2;
+
+  // Top-Left ┌
+  ctx.beginPath();
+  ctx.moveTo(bx1, by1 + cornerLen);
+  ctx.lineTo(bx1, by1);
+  ctx.lineTo(bx1 + cornerLen, by1);
+  ctx.stroke();
+
+  // Top-Right ┐
+  ctx.beginPath();
+  ctx.moveTo(bx2 - cornerLen, by1);
+  ctx.lineTo(bx2, by1);
+  ctx.lineTo(bx2, by1 + cornerLen);
+  ctx.stroke();
+
+  // Bottom-Left └
+  ctx.beginPath();
+  ctx.moveTo(bx1, by2 - cornerLen);
+  ctx.lineTo(bx1, by2);
+  ctx.lineTo(bx1 + cornerLen, by2);
+  ctx.stroke();
+
+  // Bottom-Right ┘
+  ctx.beginPath();
+  ctx.moveTo(bx2 - cornerLen, by2);
+  ctx.lineTo(bx2, by2);
+  ctx.lineTo(bx2, by2 - cornerLen);
+  ctx.stroke();
+
+  // Floating Handedness Pill Tag
+  const tagText = palette.label;
+  ctx.font = "bold 10px 'JetBrains Mono', monospace";
+  const tagWidth = ctx.measureText(tagText).width + 12;
+  const tagHeight = 16;
+  const tagX = bx1;
+  const tagY = Math.max(16, by1 - 6);
+
+  ctx.fillStyle = "rgba(10, 15, 25, 0.85)";
+  ctx.beginPath();
+  ctx.roundRect(tagX, tagY - tagHeight + 3, tagWidth, tagHeight, 4);
+  ctx.fill();
+  ctx.strokeStyle = palette.core;
+  ctx.lineWidth = 1;
+  ctx.stroke();
+
+  ctx.fillStyle = palette.light;
+  ctx.fillText(tagText, tagX + 6, tagY - 2);
+
+  ctx.restore();
+}
+
+function drawBimanualInteraction(ctx, h1, h2, w, h) {
+  if (!h1 || !h2) return;
+
+  // 1. Inter-Wrist Geometric Reference Link
+  const w1x = h1[0].x * w, w1y = h1[0].y * h;
+  const w2x = h2[0].x * w, w2y = h2[0].y * h;
+  const wristDist = Math.hypot(w1x - w2x, w1y - w2y);
+
+  ctx.save();
+  ctx.setLineDash([4, 6]);
+  ctx.strokeStyle = "rgba(148, 163, 184, 0.45)";
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(w1x, w1y);
+  ctx.lineTo(w2x, w2y);
+  ctx.stroke();
+
+  // Center Distance Gauge
+  const midX = (w1x + w2x) / 2;
+  const midY = (w1y + w2y) / 2;
+  const distLabel = `Δd: ${Math.round(wristDist)}px`;
+  ctx.font = "9px 'JetBrains Mono', monospace";
+  ctx.fillStyle = "rgba(0, 0, 0, 0.75)";
+  const dw = ctx.measureText(distLabel).width + 8;
+  ctx.beginPath();
+  ctx.roundRect(midX - dw / 2, midY - 7, dw, 14, 3);
+  ctx.fill();
+  ctx.fillStyle = "#94a3b8";
+  ctx.fillText(distLabel, midX - dw / 2 + 4, midY + 3);
+  ctx.restore();
+
+  // 2. Fingertip Proximity & Touch Arc
+  const tips = [4, 8, 12, 16, 20];
+  let minDist = Infinity;
+  let bestP1 = null, bestP2 = null;
+
+  tips.forEach(t1 => {
+    tips.forEach(t2 => {
+      const p1x = h1[t1].x * w, p1y = h1[t1].y * h;
+      const p2x = h2[t2].x * w, p2y = h2[t2].y * h;
+      const d = Math.hypot(p1x - p2x, p1y - p2y);
+      if (d < minDist) {
+        minDist = d;
+        bestP1 = { x: p1x, y: p1y };
+        bestP2 = { x: p2x, y: p2y };
+      }
+    });
+  });
+
+  // If fingertips are touching or in close contact (< 65px)
+  if (minDist < 65 && bestP1 && bestP2) {
+    ctx.save();
+    // High-energy electric connection
+    ctx.shadowColor = "#38bdf8";
+    ctx.shadowBlur = 14;
+    ctx.strokeStyle = "#fef08a";
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    ctx.moveTo(bestP1.x, bestP1.y);
+    ctx.lineTo(bestP2.x, bestP2.y);
+    ctx.stroke();
+
+    // Pulse beacon at contact point
+    const contactX = (bestP1.x + bestP2.x) / 2;
+    const contactY = (bestP1.y + bestP2.y) / 2;
 
     ctx.beginPath();
-    ctx.arc(px, py, radius, 0, 2 * Math.PI);
-    ctx.fillStyle = jointColor;
+    ctx.arc(contactX, contactY, 11, 0, 2 * Math.PI);
+    ctx.strokeStyle = "rgba(254, 240, 138, 0.85)";
+    ctx.lineWidth = 1.8;
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.arc(contactX, contactY, 4.5, 0, 2 * Math.PI);
+    ctx.fillStyle = "#ffffff";
     ctx.fill();
 
+    // Floating Contact Tag
+    const cTag = "⚡ BIMANUAL CONTACT";
+    ctx.font = "bold 9px 'Plus Jakarta Sans', sans-serif";
+    const cw = ctx.measureText(cTag).width + 12;
+    ctx.fillStyle = "rgba(245, 158, 11, 0.95)";
     ctx.beginPath();
-    ctx.arc(px, py, radius + 1.5, 0, 2 * Math.PI);
-    ctx.strokeStyle = boneColor;
-    ctx.lineWidth = 1.5;
-    ctx.stroke();
-  });
+    ctx.roundRect(contactX - cw / 2, contactY - 24, cw, 16, 4);
+    ctx.fill();
+    ctx.fillStyle = "#000000";
+    ctx.fillText(cTag, contactX - cw / 2 + 6, contactY - 12);
+
+    ctx.restore();
+  }
 }
 
 function drawPixelHandSkeleton(ctx, pixelPts, label) {
-  const boneColor = label === "Right" ? "#10b981" : "#06b6d4";
-  ctx.lineWidth = 3;
-  ctx.strokeStyle = boneColor;
+  if (!pixelPts || pixelPts.length < 21) return;
+  const isRight = label === "Right";
+  const palette = isRight ? FINGER_PALETTES.Right : FINGER_PALETTES.Left;
+
+  ctx.save();
+
+  // Palm polygon
+  const palmIndices = [0, 1, 5, 9, 13, 17];
+  ctx.beginPath();
+  ctx.moveTo(pixelPts[0][0], pixelPts[0][1]);
+  for (let i = 1; i < palmIndices.length; i++) {
+    const idx = palmIndices[i];
+    if (pixelPts[idx]) ctx.lineTo(pixelPts[idx][0], pixelPts[idx][1]);
+  }
+  ctx.closePath();
+  ctx.fillStyle = palette.bg;
+  ctx.fill();
+
+  // Bones
+  ctx.shadowColor = palette.core;
+  ctx.shadowBlur = 10;
+  ctx.lineWidth = 4;
+  ctx.strokeStyle = palette.core;
+  ctx.lineCap = "round";
 
   CONNECTIONS.forEach(([start, end]) => {
     if (pixelPts[start] && pixelPts[end]) {
@@ -455,12 +773,22 @@ function drawPixelHandSkeleton(ctx, pixelPts, label) {
     }
   });
 
-  pixelPts.forEach(pt => {
+  // Joints
+  pixelPts.forEach((pt, i) => {
+    const isTip = [4, 8, 12, 16, 20].includes(i);
     ctx.beginPath();
-    ctx.arc(pt[0], pt[1], 4, 0, 2 * Math.PI);
-    ctx.fillStyle = "#fff";
+    ctx.arc(pt[0], pt[1], isTip ? 5 : 3.5, 0, 2 * Math.PI);
+    ctx.fillStyle = "#ffffff";
     ctx.fill();
+
+    ctx.beginPath();
+    ctx.arc(pt[0], pt[1], isTip ? 7.5 : 4.5, 0, 2 * Math.PI);
+    ctx.strokeStyle = palette.light;
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
   });
+
+  ctx.restore();
 }
 
 // ==========================================================================
@@ -470,14 +798,50 @@ function drawPixelHandSkeleton(ctx, pixelPts, label) {
 function handlePredictionResult(data) {
   if (!data || !data.detected || !data.prediction) {
     hudOverlay.style.display = "none";
+    AppState.predictionBuffer = [];
+    AppState.predictionHoldCount = 0;
+    AppState.activeVotedSymbol = null;
+    if (hudHoldBar) hudHoldBar.style.width = "0%";
     return;
   }
 
-  const symbol = data.prediction;
-  const conf = Math.round(data.confidence * 100);
+  const rawSymbol = data.prediction;
+  const rawConf = Math.round(data.confidence * 100);
+  const now = Date.now();
+
+  // 1. Maintain sliding prediction buffer (last 6 frames)
+  AppState.predictionBuffer.push({
+    symbol: rawSymbol,
+    conf: rawConf,
+    timestamp: now
+  });
+  if (AppState.predictionBuffer.length > 6) {
+    AppState.predictionBuffer.shift();
+  }
+
+  // 2. Confidence-weighted voting across the temporal window
+  const voteWeights = {};
+  let totalWeight = 0;
+  for (const item of AppState.predictionBuffer) {
+    voteWeights[item.symbol] = (voteWeights[item.symbol] || 0) + item.conf;
+    totalWeight += item.conf;
+  }
+
+  let votedSymbol = rawSymbol;
+  let maxWeight = 0;
+  for (const s in voteWeights) {
+    if (voteWeights[s] > maxWeight) {
+      maxWeight = voteWeights[s];
+      votedSymbol = s;
+    }
+  }
+
+  const consistencyRatio = totalWeight > 0 ? (maxWeight / totalWeight) : 0;
+  const symbol = votedSymbol;
+  const conf = rawConf;
   const meta = data.metadata || AppState.classes[symbol] || {};
 
-  // Update HUD
+  // 3. Update HUD Display
   hudOverlay.style.display = "flex";
   hudSymbol.textContent = symbol;
   hudName.textContent = meta.name || symbol;
@@ -494,6 +858,19 @@ function handlePredictionResult(data) {
     `).join("");
   }
 
+  // Update Keras 5-Layer DNN comparison row
+  const kerasEl = document.getElementById("keras-pred-val");
+  if (kerasEl) {
+    if (data.keras_model && data.keras_model.label) {
+      const kConf = Math.round(data.keras_model.confidence * 100);
+      const isMatch = data.keras_model.label === symbol;
+      const matchBadge = isMatch ? ' <i class="fa-solid fa-check" style="color: #34d399; font-size: 0.72rem;"></i>' : '';
+      kerasEl.innerHTML = `<span style="color: #67e8f9; font-weight: 700;">${data.keras_model.label}${matchBadge}</span> <span style="font-size: 0.72rem; color: #a5b4fc;">(${kConf}%)</span>`;
+    } else {
+      kerasEl.textContent = "Standby (Need 1 hand)";
+    }
+  }
+
   // Update Active Sign Guide Card
   const activeCard = document.getElementById("active-sign-card");
   if (meta.description) {
@@ -506,30 +883,58 @@ function handlePredictionResult(data) {
   // Check Practice Mode
   if (AppState.practiceTarget && symbol === AppState.practiceTarget) {
     AppState.practiceHoldCount++;
-    if (AppState.practiceHoldCount >= 8) {
+    if (AppState.practiceHoldCount >= 6) {
       onPracticeSuccess();
     }
   } else {
     AppState.practiceHoldCount = 0;
   }
 
-  // Smart Sentence Accumulator
-  if (conf >= 60) {
-    if (symbol === AppState.lastPrediction) {
+  // 4. Temporal Hold-to-Commit State Machine
+  // Requires solid temporal consistency and reasonable confidence
+  if (consistencyRatio >= 0.50 && conf >= 35) {
+    if (symbol === AppState.activeVotedSymbol) {
       AppState.predictionHoldCount++;
-      if (AppState.predictionHoldCount === AppState.HOLD_THRESHOLD) {
-        appendSymbolToSentence(symbol);
+    } else {
+      AppState.activeVotedSymbol = symbol;
+      AppState.predictionHoldCount = 1;
+    }
+
+    const progress = Math.min(100, Math.round((AppState.predictionHoldCount / AppState.HOLD_THRESHOLD) * 100));
+    if (hudHoldBar) hudHoldBar.style.width = `${progress}%`;
+
+    if (progress < 100) {
+      if (hudCommitBadge) {
+        hudCommitBadge.className = "hud-commit-badge holding";
+        hudCommitBadge.innerHTML = `<i class="fa-solid fa-hourglass-half"></i> HOLDING (${progress}%)`;
       }
     } else {
-      AppState.lastPrediction = symbol;
-      AppState.predictionHoldCount = 1;
+      // 100% threshold reached
+      if (now > AppState.commitCooldownUntil && AppState.lastAddedSymbol !== symbol) {
+        appendSymbolToSentence(symbol);
+        playCommitChime();
+        AppState.commitCooldownUntil = now + 900;
+        AppState.lastAddedSymbol = symbol;
+
+        if (hudCommitBadge) {
+          hudCommitBadge.className = "hud-commit-badge committed";
+          hudCommitBadge.innerHTML = '<i class="fa-solid fa-check"></i> COMMITTED';
+        }
+      }
+    }
+  } else {
+    // Unsteady gesture / transition
+    AppState.predictionHoldCount = Math.max(0, AppState.predictionHoldCount - 1);
+    const progress = Math.min(100, Math.round((AppState.predictionHoldCount / AppState.HOLD_THRESHOLD) * 100));
+    if (hudHoldBar) hudHoldBar.style.width = `${progress}%`;
+    if (hudCommitBadge && progress === 0) {
+      hudCommitBadge.className = "hud-commit-badge";
+      hudCommitBadge.innerHTML = '<i class="fa-solid fa-hand"></i> STEADY HAND';
     }
   }
 }
 
 function appendSymbolToSentence(symbol) {
-  if (AppState.lastAddedSymbol === symbol) return; // Prevent repeated character spam
-
   if (AppState.sentence.length === 0 || AppState.sentence === "Recognized gestures will assemble here...") {
     AppState.sentence = "";
   }
@@ -537,18 +942,27 @@ function appendSymbolToSentence(symbol) {
   // If word sign (e.g. HELLO, THANK_YOU, YES, NO), add with spaces
   const info = AppState.classes[symbol] || {};
   if (info.category === "word") {
-    AppState.sentence += (AppState.sentence.length > 0 ? " " : "") + (info.name || symbol) + " ";
+    AppState.sentence += (AppState.sentence.length > 0 && !AppState.sentence.endsWith(" ") ? " " : "") + (info.name || symbol) + " ";
   } else {
     AppState.sentence += symbol;
   }
 
-  AppState.lastAddedSymbol = symbol;
   renderSentence();
 
-  // Reset lastAddedSymbol after short cooldown to allow repeating after slight hand reset
+  // Flash commit effect on sentence box
+  if (sentenceDisplayBox) {
+    sentenceDisplayBox.classList.remove("flash-commit");
+    void sentenceDisplayBox.offsetWidth; // Trigger reflow
+    sentenceDisplayBox.classList.add("flash-commit");
+    setTimeout(() => {
+      if (sentenceDisplayBox) sentenceDisplayBox.classList.remove("flash-commit");
+    }, 450);
+  }
+
+  // Reset lastAddedSymbol after cooldown to allow repeating after slight hand reset
   setTimeout(() => {
     AppState.lastAddedSymbol = null;
-  }, 1200);
+  }, 1000);
 }
 
 function renderSentence() {
@@ -660,6 +1074,20 @@ function setupTextToSign() {
     });
   });
 
+  // Media mode toggle (Video vs Image)
+  const mediaToggleBtn = document.getElementById("btn-player-media-toggle");
+  if (mediaToggleBtn) {
+    mediaToggleBtn.addEventListener("click", () => {
+      AppState.ttsMediaMode = AppState.ttsMediaMode === "video" ? "image" : "video";
+      const lbl = document.getElementById("player-media-label");
+      if (lbl) lbl.textContent = AppState.ttsMediaMode === "video" ? "Video" : "Image";
+      showToast(`Text-to-Sign player mode: ${AppState.ttsMediaMode === "video" ? "HD Demonstration Video" : "Static Image"}`);
+      if (AppState.ttsSequence && AppState.ttsSequence.length > 0) {
+        renderSignPlayer(AppState.ttsSequence[AppState.ttsCurrentIndex], AppState.ttsCurrentIndex, AppState.ttsSequence.length);
+      }
+    });
+  }
+
   // Initial translation
   if (inputEl.value.trim()) {
     translateTextToSigns(inputEl.value.trim());
@@ -705,6 +1133,8 @@ function renderSignPlayer(signData, currentIndex, totalSigns) {
   const stepTag = document.getElementById("player-step-tag");
   const handsTag = document.getElementById("player-hands-tag");
   const imgEl = document.getElementById("player-sign-image");
+  const vidEl = document.getElementById("player-sign-video");
+  const videoBadge = document.getElementById("player-video-badge");
   const titleEl = document.getElementById("player-sign-title");
   const descEl = document.getElementById("player-sign-desc");
   const progBar = document.getElementById("player-progress-bar");
@@ -714,6 +1144,9 @@ function renderSignPlayer(signData, currentIndex, totalSigns) {
     titleEl.textContent = "-";
     descEl.textContent = "Enter text above and click translate to start.";
     progBar.style.width = "0%";
+    if (vidEl) { vidEl.style.display = "none"; vidEl.pause(); }
+    if (imgEl) imgEl.style.display = "block";
+    if (videoBadge) videoBadge.style.display = "none";
     return;
   }
 
@@ -721,10 +1154,29 @@ function renderSignPlayer(signData, currentIndex, totalSigns) {
   handsTag.textContent = signData.hands === 2 ? "2 Hands" : "1 Hand";
   handsTag.className = `stage-hands-tag hand-tag ${signData.hands === 2 ? "two-hand" : "one-hand"}`;
 
-  imgEl.src = signData.image_url;
-  imgEl.classList.remove("anim-pop");
-  void imgEl.offsetWidth; // trigger reflow
-  imgEl.classList.add("anim-pop");
+  // Video or Image display mode
+  const canPlayVideo = AppState.ttsMediaMode === "video" && signData.has_video && signData.video_url;
+  if (canPlayVideo && vidEl) {
+    imgEl.style.display = "none";
+    vidEl.style.display = "block";
+    if (vidEl.src !== signData.video_url) {
+      vidEl.src = signData.video_url;
+    }
+    vidEl.currentTime = 0;
+    vidEl.play().catch(e => console.log("Video auto-play deferred:", e));
+    if (videoBadge) videoBadge.style.display = "flex";
+  } else {
+    if (vidEl) {
+      vidEl.style.display = "none";
+      vidEl.pause();
+    }
+    imgEl.style.display = "block";
+    imgEl.src = signData.image_url;
+    imgEl.classList.remove("anim-pop");
+    void imgEl.offsetWidth; // trigger reflow
+    imgEl.classList.add("anim-pop");
+    if (videoBadge) videoBadge.style.display = "none";
+  }
 
   titleEl.textContent = signData.token === signData.sign_key ? signData.name : `${signData.token} (${signData.name})`;
   descEl.textContent = signData.description || "Perform the designated hand pose.";
@@ -929,6 +1381,20 @@ function setupVoiceToSign() {
   document.getElementById("btn-voice-toggle").addEventListener("click", toggleVoicePlayback);
   document.getElementById("btn-voice-prev").addEventListener("click", prevVoiceSign);
   document.getElementById("btn-voice-next").addEventListener("click", nextVoiceSign);
+
+  // Voice media toggle (Video vs Image)
+  const voiceMediaToggleBtn = document.getElementById("btn-voice-media-toggle");
+  if (voiceMediaToggleBtn) {
+    voiceMediaToggleBtn.addEventListener("click", () => {
+      AppState.voiceMediaMode = AppState.voiceMediaMode === "video" ? "image" : "video";
+      const lbl = document.getElementById("voice-media-label");
+      if (lbl) lbl.textContent = AppState.voiceMediaMode === "video" ? "Video" : "Image";
+      showToast(`Voice-to-Sign mode: ${AppState.voiceMediaMode === "video" ? "HD Demonstration Video" : "Static Image"}`);
+      if (AppState.voiceSequence && AppState.voiceSequence.length > 0) {
+        renderVoicePlayer(AppState.voiceSequence[AppState.voiceCurrentIndex], AppState.voiceCurrentIndex, AppState.voiceSequence.length);
+      }
+    });
+  }
 }
 
 async function processSpokenVoice(spokenText) {
@@ -971,6 +1437,8 @@ function renderVoicePlayer(signData, currentIndex, totalSigns) {
   const stepTag = document.getElementById("voice-step-tag");
   const handsTag = document.getElementById("voice-hands-tag");
   const imgEl = document.getElementById("voice-sign-image");
+  const vidEl = document.getElementById("voice-sign-video");
+  const videoBadge = document.getElementById("voice-video-badge");
   const titleEl = document.getElementById("voice-sign-title");
   const descEl = document.getElementById("voice-sign-desc");
   const progBar = document.getElementById("voice-progress-bar");
@@ -981,10 +1449,29 @@ function renderVoicePlayer(signData, currentIndex, totalSigns) {
   handsTag.textContent = signData.hands === 2 ? "2 Hands" : "1 Hand";
   handsTag.className = `stage-hands-tag hand-tag ${signData.hands === 2 ? "two-hand" : "one-hand"}`;
 
-  imgEl.src = signData.image_url;
-  imgEl.classList.remove("anim-pop");
-  void imgEl.offsetWidth;
-  imgEl.classList.add("anim-pop");
+  // Video or Image display mode
+  const canPlayVideo = AppState.voiceMediaMode === "video" && signData.has_video && signData.video_url;
+  if (canPlayVideo && vidEl) {
+    imgEl.style.display = "none";
+    vidEl.style.display = "block";
+    if (vidEl.src !== signData.video_url) {
+      vidEl.src = signData.video_url;
+    }
+    vidEl.currentTime = 0;
+    vidEl.play().catch(e => console.log("Voice video play deferred:", e));
+    if (videoBadge) videoBadge.style.display = "flex";
+  } else {
+    if (vidEl) {
+      vidEl.style.display = "none";
+      vidEl.pause();
+    }
+    imgEl.style.display = "block";
+    imgEl.src = signData.image_url;
+    imgEl.classList.remove("anim-pop");
+    void imgEl.offsetWidth;
+    imgEl.classList.add("anim-pop");
+    if (videoBadge) videoBadge.style.display = "none";
+  }
 
   titleEl.textContent = signData.token === signData.sign_key ? signData.name : `${signData.token} (${signData.name})`;
   descEl.textContent = signData.description || "Hold gesture posture.";
@@ -1079,7 +1566,10 @@ function nextVoiceSign() {
 
 function renderStudioClassSelector() {
   const container = document.getElementById("studio-class-selector");
+  if (!container) return;
   container.innerHTML = "";
+  const cat = AppState.currentCategory || "all";
+  container.className = `class-grid-selector cat-${cat}`;
 
   const classes = Object.values(AppState.classes).filter(c => {
     if (AppState.currentCategory === "all") return true;
@@ -1105,7 +1595,16 @@ function renderStudioClassSelector() {
 
 function updateStudioClassView(label) {
   const info = AppState.classes[label] || { name: label, description: "", tips: "", sample_count: 0 };
-  document.getElementById("studio-current-chip").textContent = label;
+  const chipEl = document.getElementById("studio-current-chip");
+  if (chipEl) {
+    chipEl.textContent = label;
+    chipEl.classList.remove("chip-medium", "chip-long");
+    if (label.length > 5) {
+      chipEl.classList.add("chip-long");
+    } else if (label.length > 2) {
+      chipEl.classList.add("chip-medium");
+    }
+  }
   document.getElementById("studio-current-name").textContent = `${info.name} (${info.category.toUpperCase()})`;
   document.getElementById("studio-current-desc").textContent = info.description || "Hold steady in camera frame";
   document.getElementById("studio-class-samples").textContent = info.sample_count || 0;
@@ -1267,31 +1766,64 @@ async function triggerBurstCapture(totalCount = 30) {
 
 function setupDictionary() {
   const searchInput = document.getElementById("dict-search-input");
-  searchInput.addEventListener("input", (e) => {
-    renderDictionary(e.target.value.trim().toLowerCase());
-  });
+  if (searchInput) {
+    searchInput.addEventListener("input", (e) => {
+      renderDictionary(e.target.value.trim().toLowerCase());
+    });
+  }
 
   document.querySelectorAll(".cat-btn[data-dict-cat]").forEach(btn => {
     btn.addEventListener("click", () => {
       document.querySelectorAll(".cat-btn[data-dict-cat]").forEach(b => b.classList.remove("active"));
       btn.classList.add("active");
       AppState.dictCategory = btn.getAttribute("data-dict-cat");
-      renderDictionary(searchInput.value.trim().toLowerCase());
+      const q = searchInput ? searchInput.value.trim().toLowerCase() : "";
+      renderDictionary(q);
     });
   });
 
-  document.getElementById("btn-close-modal").addEventListener("click", () => {
-    document.getElementById("practice-modal").style.display = "none";
-    AppState.practiceTarget = null;
+  // Practice Modal Close Button
+  const closePracticeBtn = document.getElementById("btn-close-modal");
+  if (closePracticeBtn) {
+    closePracticeBtn.addEventListener("click", () => {
+      document.getElementById("practice-modal").style.display = "none";
+      const refVid = document.getElementById("practice-ref-video");
+      if (refVid) refVid.pause();
+      AppState.practiceTarget = null;
+    });
+  }
+
+  // Video Showcase Modal Close Button
+  const closeVideoBtn = document.getElementById("btn-close-video-modal");
+  if (closeVideoBtn) {
+    closeVideoBtn.addEventListener("click", () => {
+      document.getElementById("video-modal").style.display = "none";
+      const vidPlayer = document.getElementById("modal-video-player");
+      if (vidPlayer) vidPlayer.pause();
+    });
+  }
+
+  // Video Speed Selectors in Video Modal
+  document.querySelectorAll(".vid-speed-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll(".vid-speed-btn").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      const speed = parseFloat(btn.getAttribute("data-speed")) || 1.0;
+      const vidPlayer = document.getElementById("modal-video-player");
+      if (vidPlayer) vidPlayer.playbackRate = speed;
+    });
   });
 }
 
 function renderDictionary(filterQuery = "") {
   const grid = document.getElementById("dictionary-cards-grid");
+  if (!grid) return;
   grid.innerHTML = "";
 
   const entries = Object.entries(AppState.classes).filter(([key, val]) => {
-    if (AppState.dictCategory !== "all" && val.category !== AppState.dictCategory) {
+    if (AppState.dictCategory === "video") {
+      if (!val.has_video) return false;
+    } else if (AppState.dictCategory !== "all" && val.category !== AppState.dictCategory) {
       return false;
     }
     if (filterQuery) {
@@ -1316,10 +1848,27 @@ function renderDictionary(filterQuery = "") {
     const handTagClass = isTwoHand ? "two-hand" : "one-hand";
     const handTagText = isTwoHand ? "2 Hands" : "1 Hand";
 
+    const hasVid = val.has_video && val.video_url;
+    const vidBadgeHtml = hasVid ? `<span class="video-available-badge"><i class="fa-solid fa-play"></i> Video</span>` : '';
+    const rawImgUrl = val.image_url || `/static/assets/signs/${key}.jpg`;
+    const imgUrl = rawImgUrl.includes("?") ? rawImgUrl : `${rawImgUrl}?v=20261001`;
+
+    const displayBadge = key.replace(/_/g, " ");
+    let badgeClass = "sign-badge";
+    if (key.length > 5) {
+      badgeClass += " badge-long";
+    } else if (key.length > 2) {
+      badgeClass += " badge-medium";
+    }
+
     card.innerHTML = `
       <div class="sign-card-top">
-        <div class="sign-badge">${key}</div>
+        <div class="${badgeClass}" title="${displayBadge}">${displayBadge}</div>
         <span class="hand-tag ${handTagClass}">${handTagText}</span>
+      </div>
+      <div class="sign-card-media">
+        <img class="sign-card-thumb" src="${imgUrl}" alt="${val.name}" loading="lazy">
+        ${vidBadgeHtml}
       </div>
       <div>
         <h3 style="font-family: var(--font-display); font-size: 1.05rem; font-weight: 700;">${val.name}</h3>
@@ -1327,9 +1876,18 @@ function renderDictionary(filterQuery = "") {
       </div>
       <p class="sign-card-desc">${val.description || "Hold hands in designated pose."}</p>
       <div class="sign-card-tip"><i class="fa-solid fa-lightbulb"></i> ${val.tips || "Hold steady inside frame."}</div>
-      <div class="sign-card-actions">
-        <button class="btn btn-secondary btn-sm" style="width: 100%;" onclick="openPracticeModal('${key}')">
-          <i class="fa-solid fa-bullseye"></i> Practice In Camera
+      <div class="sign-card-btns">
+        ${hasVid ? `
+          <button class="btn btn-secondary btn-sm" onclick="openVideoModal('${key}')">
+            <i class="fa-solid fa-film"></i> Watch Video
+          </button>
+        ` : `
+          <button class="btn btn-outline btn-sm" disabled style="opacity: 0.5;">
+            <i class="fa-solid fa-image"></i> Static Pose
+          </button>
+        `}
+        <button class="btn btn-primary btn-sm" onclick="openPracticeModal('${key}')">
+          <i class="fa-solid fa-bullseye"></i> Practice
         </button>
       </div>
     `;
@@ -1338,6 +1896,37 @@ function renderDictionary(filterQuery = "") {
   });
 }
 
+window.openVideoModal = function(signKey) {
+  const info = AppState.classes[signKey];
+  if (!info || !info.video_url) return;
+
+  const modal = document.getElementById("video-modal");
+  const title = document.getElementById("video-modal-title");
+  const videoPlayer = document.getElementById("modal-video-player");
+  const handsTag = document.getElementById("video-modal-hands");
+  const desc = document.getElementById("video-modal-desc");
+  const tip = document.getElementById("video-modal-tip");
+  const practiceBtn = document.getElementById("btn-video-modal-practice");
+
+  title.textContent = `${signKey} - ${info.name}`;
+  handsTag.textContent = info.hands === 2 ? "2 Hands" : "1 Hand";
+  handsTag.className = `hand-tag ${info.hands === 2 ? "two-hand" : "one-hand"}`;
+  desc.textContent = info.description || "Watch gesture demonstration in full HD.";
+  tip.innerHTML = `<i class="fa-solid fa-lightbulb"></i> ${info.tips || "Observe hand formation and movement carefully."}`;
+
+  videoPlayer.src = info.video_url;
+  videoPlayer.playbackRate = 1.0;
+  videoPlayer.play().catch(e => console.log("Video modal auto-play deferred:", e));
+
+  practiceBtn.onclick = () => {
+    videoPlayer.pause();
+    modal.style.display = "none";
+    openPracticeModal(signKey);
+  };
+
+  modal.style.display = "flex";
+};
+
 window.openPracticeModal = function(signKey) {
   const info = AppState.classes[signKey];
   if (!info) return;
@@ -1345,11 +1934,42 @@ window.openPracticeModal = function(signKey) {
   AppState.practiceTarget = signKey;
   AppState.practiceHoldCount = 0;
 
+  // Close video modal if open
+  const vidModal = document.getElementById("video-modal");
+  if (vidModal) {
+    vidModal.style.display = "none";
+    const vidPlayer = document.getElementById("modal-video-player");
+    if (vidPlayer) vidPlayer.pause();
+  }
+
   document.getElementById("modal-sign-name").textContent = `${signKey} (${info.name})`;
   document.getElementById("modal-sign-desc").textContent = info.description;
-  document.getElementById("modal-tip-box").textContent = `Tip: ${info.tips}`;
+  document.getElementById("modal-tip-box").innerHTML = `<i class="fa-solid fa-lightbulb"></i> Tip: ${info.tips}`;
   document.getElementById("modal-match-status").textContent = "Waiting for Pose...";
   document.getElementById("modal-match-status").style.color = "var(--accent-amber)";
+
+  const refVideo = document.getElementById("practice-ref-video");
+  const refImg = document.getElementById("practice-ref-img");
+
+  if (info.has_video && info.video_url) {
+    if (refImg) refImg.style.display = "none";
+    if (refVideo) {
+      refVideo.style.display = "block";
+      refVideo.src = info.video_url;
+      refVideo.playbackRate = 1.0;
+      refVideo.play().catch(e => console.log("Practice video play deferred:", e));
+    }
+  } else {
+    if (refVideo) {
+      refVideo.style.display = "none";
+      refVideo.pause();
+    }
+    if (refImg) {
+      refImg.style.display = "block";
+      const rawRefSrc = info.image_url || `/static/assets/signs/${signKey}.jpg`;
+      refImg.src = rawRefSrc.includes("?") ? rawRefSrc : `${rawRefSrc}?v=20261001`;
+    }
+  }
 
   document.getElementById("practice-modal").style.display = "flex";
 
@@ -1377,6 +1997,395 @@ function onPracticeSuccess() {
 
   setTimeout(() => {
     document.getElementById("practice-modal").style.display = "none";
+    const refVideo = document.getElementById("practice-ref-video");
+    if (refVideo) refVideo.pause();
     AppState.practiceTarget = null;
   }, 2200);
 }
+
+// ==========================================================================
+// YouTube Video to ISL Sign Language Controller
+// ==========================================================================
+
+let ytPlayer = null;
+let ytIframeApiReady = false;
+let ytWords = [];
+let ytActiveWordIndex = -1;
+let ytSyncInterval = null;
+let ytIsPlaying = false;
+let ytCurrentVideoId = null;
+
+function ensureYouTubeIframeApi() {
+  if (window.YT && window.YT.Player) {
+    ytIframeApiReady = true;
+    return;
+  }
+  if (!document.getElementById("yt-iframe-api-script")) {
+    const tag = document.createElement("script");
+    tag.id = "yt-iframe-api-script";
+    tag.src = "https://www.youtube.com/iframe_api";
+    const firstScriptTag = document.getElementsByTagName("script")[0];
+    firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+    window.onYouTubeIframeAPIReady = () => {
+      ytIframeApiReady = true;
+      console.log("YouTube IFrame API ready.");
+    };
+  }
+}
+
+function setupYouTubeToSign() {
+  ensureYouTubeIframeApi();
+
+  const urlInput = document.getElementById("yt-url-input");
+  const pasteBtn = document.getElementById("btn-yt-paste");
+  const convertBtn = document.getElementById("btn-yt-convert");
+  const statusBanner = document.getElementById("yt-status-banner");
+  const statusText = document.getElementById("yt-status-text");
+  const demoChips = document.querySelectorAll(".yt-demo-chip");
+  const playToggleBtn = document.getElementById("btn-yt-play-toggle");
+  const rewindBtn = document.getElementById("btn-yt-rewind");
+  const forwardBtn = document.getElementById("btn-yt-forward");
+  const speedBtns = document.querySelectorAll(".yt-speed-btn");
+
+  if (!convertBtn) return;
+
+  // Paste from clipboard
+  if (pasteBtn && urlInput) {
+    pasteBtn.addEventListener("click", async () => {
+      try {
+        const text = await navigator.clipboard.readText();
+        urlInput.value = text;
+        showToast("Pasted URL from clipboard");
+      } catch (err) {
+        showToast("Clipboard access denied or empty", "warning");
+      }
+    });
+  }
+
+  // Convert Button Click
+  convertBtn.addEventListener("click", async () => {
+    const url = (urlInput.value || "").trim();
+    if (!url) {
+      showToast("Please enter a valid YouTube video URL", "warning");
+      return;
+    }
+
+    statusBanner.style.display = "flex";
+    statusText.textContent = "Downloading audio stream & transcribing with Deepgram Speech AI...";
+    convertBtn.disabled = true;
+    convertBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Converting...`;
+
+    try {
+      const res = await fetch("/api/youtube_to_sign", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url })
+      });
+      const data = await res.json();
+
+      if (data.status !== "success") {
+        throw new Error(data.message || "Failed to transcribe YouTube video.");
+      }
+
+      showToast(`Transcription ready! ${data.total_words} words mapped to ISL.`);
+      loadYouTubeTranslationData(data);
+    } catch (err) {
+      console.error("YouTube conversion error:", err);
+      showToast(err.message || "Conversion failed", "warning");
+    } finally {
+      statusBanner.style.display = "none";
+      convertBtn.disabled = false;
+      convertBtn.innerHTML = `<i class="fa-solid fa-wand-magic-sparkles"></i> Convert Video`;
+    }
+  });
+
+  // Demo Chips
+  demoChips.forEach(chip => {
+    chip.addEventListener("click", async () => {
+      const demoId = chip.getAttribute("data-demo");
+      statusBanner.style.display = "flex";
+      statusText.textContent = "Loading curated demo clip & synchronized timestamps...";
+
+      try {
+        const res = await fetch("/api/youtube_demos");
+        const data = await res.json();
+        const demo = (data.demos || []).find(d => d.id === demoId) || data.demos[0];
+        if (demo) {
+          loadYouTubeTranslationData({
+            video_id: demo.video_id,
+            title: demo.title,
+            transcript: demo.transcript,
+            words: demo.words,
+            total_words: demo.words.length
+          });
+          showToast(`Demo loaded: "${demo.title}"`);
+        }
+      } catch (err) {
+        showToast("Failed to load demo", "warning");
+      } finally {
+        statusBanner.style.display = "none";
+      }
+    });
+  });
+
+  // Player Play/Pause Toggle
+  if (playToggleBtn) {
+    playToggleBtn.addEventListener("click", () => {
+      if (ytPlayer && ytPlayer.getPlayerState) {
+        const state = ytPlayer.getPlayerState();
+        if (state === 1) {
+          ytPlayer.pauseVideo();
+        } else {
+          ytPlayer.playVideo();
+        }
+      } else {
+        const html5Video = document.getElementById("yt-html5-player");
+        if (html5Video && html5Video.src) {
+          if (html5Video.paused) html5Video.play();
+          else html5Video.pause();
+        }
+      }
+    });
+  }
+
+  // Rewind / Forward
+  if (rewindBtn) {
+    rewindBtn.addEventListener("click", () => {
+      seekRelative(-5);
+    });
+  }
+  if (forwardBtn) {
+    forwardBtn.addEventListener("click", () => {
+      seekRelative(5);
+    });
+  }
+
+  // Speed controls
+  speedBtns.forEach(btn => {
+    btn.addEventListener("click", () => {
+      speedBtns.forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      const speed = parseFloat(btn.getAttribute("data-speed") || "1.0");
+      if (ytPlayer && ytPlayer.setPlaybackRate) {
+        ytPlayer.setPlaybackRate(speed);
+      }
+      const html5Video = document.getElementById("yt-html5-player");
+      if (html5Video) html5Video.playbackRate = speed;
+    });
+  });
+}
+
+function seekRelative(seconds) {
+  if (ytPlayer && ytPlayer.getCurrentTime) {
+    const cur = ytPlayer.getCurrentTime();
+    ytPlayer.seekTo(Math.max(0, cur + seconds), true);
+  } else {
+    const html5Video = document.getElementById("yt-html5-player");
+    if (html5Video && html5Video.currentTime !== undefined) {
+      html5Video.currentTime = Math.max(0, html5Video.currentTime + seconds);
+    }
+  }
+}
+
+function loadYouTubeTranslationData(data) {
+  ytWords = data.words || [];
+  ytCurrentVideoId = data.video_id;
+
+  const titleEl = document.getElementById("yt-video-title");
+  if (titleEl) titleEl.textContent = data.title || "YouTube Video";
+
+  const wordCountEl = document.getElementById("yt-transcript-word-count");
+  if (wordCountEl) wordCountEl.textContent = `(${ytWords.length} words)`;
+
+  // Render Transcript Chips
+  const transcriptFlow = document.getElementById("yt-transcript-flow");
+  if (transcriptFlow) {
+    transcriptFlow.innerHTML = "";
+    ytWords.forEach((item, index) => {
+      const chip = document.createElement("span");
+      chip.className = "yt-transcript-chip";
+      chip.id = `yt-chip-${index}`;
+      chip.innerHTML = `${item.word} <span style="font-size: 0.7rem; opacity: 0.6;">${item.start}s</span>`;
+      chip.title = `Seek to ${item.start}s (Sign: ${item.clean})`;
+      chip.addEventListener("click", () => {
+        seekToTimestamp(item.start);
+      });
+      transcriptFlow.appendChild(chip);
+    });
+  }
+
+  // Load Video in YouTube IFrame or HTML5 Player
+  if (ytCurrentVideoId) {
+    loadIframeVideo(ytCurrentVideoId);
+  } else if (data.video_url || data.audio_url) {
+    loadHtml5Media(data.video_url || data.audio_url);
+  }
+
+  // Start Sync Loop
+  startPlaybackSyncLoop();
+}
+
+function loadIframeVideo(videoId) {
+  const html5Player = document.getElementById("yt-html5-player");
+  const playerTarget = document.getElementById("yt-player-target");
+  if (html5Player) html5Player.style.display = "none";
+  if (playerTarget) playerTarget.style.display = "block";
+
+  if (window.YT && window.YT.Player) {
+    try {
+      if (ytPlayer && typeof ytPlayer.loadVideoById === "function") {
+        ytPlayer.loadVideoById(videoId);
+        return;
+      }
+      ytPlayer = new window.YT.Player("yt-player-target", {
+        videoId: videoId,
+        playerVars: {
+          autoplay: 1,
+          controls: 1,
+          modestbranding: 1,
+          rel: 0
+        },
+        events: {
+          onStateChange: onYouTubePlayerStateChange
+        }
+      });
+    } catch (e) {
+      console.log("YT Player init fallback:", e);
+      playerTarget.innerHTML = `<iframe id="yt-direct-iframe" width="100%" height="100%" src="https://www.youtube.com/embed/${videoId}?enablejsapi=1&autoplay=1" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
+    }
+  } else {
+    playerTarget.innerHTML = `<iframe id="yt-direct-iframe" width="100%" height="100%" src="https://www.youtube.com/embed/${videoId}?enablejsapi=1&autoplay=1" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
+  }
+}
+
+function loadHtml5Media(url) {
+  const html5Player = document.getElementById("yt-html5-player");
+  const playerTarget = document.getElementById("yt-player-target");
+  if (playerTarget) playerTarget.style.display = "none";
+  if (html5Player) {
+    html5Player.style.display = "block";
+    html5Player.src = url;
+    html5Player.play().catch(e => console.log("HTML5 autoplay deferred:", e));
+  }
+}
+
+function onYouTubePlayerStateChange(event) {
+  const playToggleBtn = document.getElementById("btn-yt-play-toggle");
+  if (event.data === 1) {
+    ytIsPlaying = true;
+    if (playToggleBtn) playToggleBtn.innerHTML = `<i class="fa-solid fa-pause"></i> Pause`;
+  } else {
+    ytIsPlaying = false;
+    if (playToggleBtn) playToggleBtn.innerHTML = `<i class="fa-solid fa-play"></i> Play`;
+  }
+}
+
+function seekToTimestamp(seconds) {
+  if (ytPlayer && ytPlayer.seekTo) {
+    ytPlayer.seekTo(seconds, true);
+    ytPlayer.playVideo();
+  } else {
+    const html5 = document.getElementById("yt-html5-player");
+    if (html5) {
+      html5.currentTime = seconds;
+      html5.play();
+    }
+  }
+}
+
+function startPlaybackSyncLoop() {
+  if (ytSyncInterval) clearInterval(ytSyncInterval);
+
+  ytSyncInterval = setInterval(() => {
+    let currentTime = 0;
+    let duration = 0;
+
+    if (ytPlayer && ytPlayer.getCurrentTime && typeof ytPlayer.getCurrentTime === "function") {
+      try {
+        currentTime = ytPlayer.getCurrentTime() || 0;
+        duration = ytPlayer.getDuration() || 0;
+      } catch (e) {}
+    } else {
+      const html5 = document.getElementById("yt-html5-player");
+      if (html5) {
+        currentTime = html5.currentTime || 0;
+        duration = html5.duration || 0;
+      }
+    }
+
+    const timerEl = document.getElementById("yt-playback-timer");
+    if (timerEl && duration > 0) {
+      timerEl.textContent = `${formatTime(currentTime)} / ${formatTime(duration)}`;
+    }
+
+    syncWordWithTimestamp(currentTime);
+  }, 100);
+}
+
+function syncWordWithTimestamp(time) {
+  if (!ytWords || ytWords.length === 0) return;
+
+  const foundIndex = ytWords.findIndex(w => time >= w.start && time <= w.end);
+  if (foundIndex !== -1 && foundIndex !== ytActiveWordIndex) {
+    ytActiveWordIndex = foundIndex;
+    const active = ytWords[foundIndex];
+    renderActiveSignPresentation(active, foundIndex);
+  }
+}
+
+function renderActiveSignPresentation(activeWord, index) {
+  const wordEl = document.getElementById("yt-active-word");
+  const timingEl = document.getElementById("yt-word-timing");
+  const confEl = document.getElementById("yt-word-confidence");
+  const subtitleEl = document.getElementById("yt-live-subtitle");
+  const lettersContainer = document.getElementById("yt-letters-container");
+  const matchContainer = document.getElementById("yt-video-match-container");
+  const islVideo = document.getElementById("yt-isl-demonstration-video");
+
+  if (wordEl) wordEl.textContent = activeWord.clean || activeWord.word;
+  if (timingEl) timingEl.textContent = `${activeWord.start}s - ${activeWord.end}s`;
+  if (confEl) confEl.textContent = `${Math.round((activeWord.confidence || 1) * 100)}% Confidence`;
+  if (subtitleEl) subtitleEl.textContent = activeWord.word;
+
+  // 1. ISL Full Gesture Video Demonstration (if matched in 203 vocabulary dictionary)
+  if (activeWord.has_video && activeWord.video_url) {
+    if (matchContainer) matchContainer.style.display = "flex";
+    if (islVideo) {
+      if (islVideo.src !== window.location.origin + activeWord.video_url) {
+        islVideo.src = activeWord.video_url;
+        islVideo.play().catch(e => console.log("Loop video deferred:", e));
+      }
+    }
+  } else {
+    if (matchContainer) matchContainer.style.display = "none";
+  }
+
+  // 2. Dynamic Fingerspelling Sign Cards
+  if (lettersContainer) {
+    lettersContainer.innerHTML = "";
+    (activeWord.letters || []).forEach(item => {
+      const card = document.createElement("div");
+      card.className = "yt-letter-card";
+      card.innerHTML = `
+        <img src="${item.img_url}" alt="${item.char}" onerror="this.src='/static/assets/signs/A.jpg'">
+        <span>${item.char}</span>
+      `;
+      lettersContainer.appendChild(card);
+    });
+  }
+
+  // 3. Highlight Transcript Chip
+  document.querySelectorAll(".yt-transcript-chip").forEach(c => c.classList.remove("active-chip"));
+  const activeChip = document.getElementById(`yt-chip-${index}`);
+  if (activeChip) {
+    activeChip.classList.add("active-chip");
+    activeChip.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }
+}
+
+function formatTime(seconds) {
+  const m = Math.floor(seconds / 60);
+  const s = Math.floor(seconds % 60);
+  return `${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
+}
+

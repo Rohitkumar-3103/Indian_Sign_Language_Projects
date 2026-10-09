@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Comprehensive 18-Paper Research Survey | ISL Vision</title>
+  <meta name="description" content="Master empirical and comparative survey on all 18 academic research papers in the Indian Sign Language recognition repository.">
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  
+  <!-- Local Stylesheet -->
+  <link rel="stylesheet" href="/static/css/style.css?v=1.3">
+
+  <style>
+    /* Research Report Dedicated Styles */
+    :root {
+      --report-max-width: 1200px;
+    }
+
+    body {
+      background-color: var(--bg-primary);
+      color: var(--text-primary);
+      font-family: var(--font-sans);
+      line-height: 1.7;
+    }
+
+    /* Top Sticky Action Bar */
+    .report-topbar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(9, 13, 22, 0.88);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border-bottom: 1px solid var(--border-subtle);
+      padding: 0.85rem 2rem;
+    }
+
+    .report-topbar-inner {
+      max-width: var(--report-max-width);
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .brand-icon {
+      width: 38px;
+      height: 38px;
+      border-radius: var(--radius-sm);
+      background: linear-gradient(135deg, var(--accent-emerald), var(--accent-cyan));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.15rem;
+      color: #fff;
+      box-shadow: 0 0 15px rgba(16, 185, 129, 0.4);
+    }
+
+    .brand-text h1 {
+      font-family: var(--font-display);
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #fff;
+      line-height: 1.2;
+    }
+
+    .brand-text p {
+      font-size: 0.75rem;
+      color: var(--accent-emerald-light);
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+
+    .action-group {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    /* Main Container */
+    .report-wrapper {
+      max-width: var(--report-max-width);
+      margin: 0 auto;
+      padding: 2.5rem 1.5rem 5rem;
+    }
+
+    /* Hero Card */
+    .report-hero-card {
+      background: linear-gradient(135deg, rgba(15, 23, 42, 0.9), rgba(24, 32, 56, 0.85));
+      border: 1px solid rgba(16, 185, 129, 0.25);
+      border-radius: var(--radius-lg);
+      padding: 2.5rem 2.25rem;
+      margin-bottom: 2.5rem;
+      box-shadow: var(--shadow-md);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .report-hero-card::after {
+      content: "";
+      position: absolute;
+      top: -50%;
+      right: -20%;
+      width: 400px;
+      height: 400px;
+      background: radial-gradient(circle, rgba(16, 185, 129, 0.12) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .hero-meta-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid rgba(16, 185, 129, 0.35);
+      padding: 0.35rem 0.85rem;
+      border-radius: var(--radius-full);
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--accent-emerald-light);
+      margin-bottom: 1rem;
+    }
+
+    .hero-title {
+      font-family: var(--font-display);
+      font-size: 2.2rem;
+      font-weight: 800;
+      color: #fff;
+      line-height: 1.25;
+      margin-bottom: 0.75rem;
+    }
+
+    .hero-subtitle {
+      font-size: 1.15rem;
+      color: var(--text-secondary);
+      margin-bottom: 1.5rem;
+      max-width: 900px;
+    }
+
+    .hero-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+    }
+
+    .hero-pill {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      padding: 0.4rem 0.85rem;
+      font-size: 0.82rem;
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+    }
+
+    .hero-pill strong {
+      color: #fff;
+    }
+
+    /* Fast Table of Contents */
+    .report-toc-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 1.25rem 1.75rem;
+      margin-bottom: 2.5rem;
+    }
+
+    .report-toc-title {
+      font-family: var(--font-display);
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .report-toc-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.6rem;
+    }
+
+    .toc-link {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      padding: 0.35rem 0.75rem;
+      font-size: 0.82rem;
+      color: var(--text-secondary);
+      text-decoration: none;
+      transition: var(--transition);
+      cursor: pointer;
+    }
+
+    .toc-link:hover {
+      background: rgba(16, 185, 129, 0.15);
+      border-color: var(--accent-emerald);
+      color: #fff;
+    }
+
+    /* Rendered Markdown Styling */
+    .report-content {
+      background: var(--bg-card);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 2.75rem 2.5rem;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .report-content h1 {
+      font-family: var(--font-display);
+      font-size: 1.85rem;
+      font-weight: 800;
+      color: #fff;
+      margin: 2.2rem 0 1rem;
+      padding-bottom: 0.6rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .report-content h1:first-child {
+      margin-top: 0;
+    }
+
+    .report-content h2 {
+      font-family: var(--font-display);
+      font-size: 1.45rem;
+      font-weight: 700;
+      color: var(--accent-emerald-light);
+      margin: 2.5rem 0 1rem;
+      padding-left: 0.75rem;
+      border-left: 4px solid var(--accent-emerald);
+    }
+
+    .report-content h3 {
+      font-family: var(--font-display);
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--accent-cyan-light);
+      margin: 1.75rem 0 0.75rem;
+    }
+
+    .report-content h4 {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin: 1.25rem 0 0.5rem;
+    }
+
+    .report-content p {
+      margin-bottom: 1.15rem;
+      color: #cbd5e1;
+      font-size: 0.95rem;
+    }
+
+    .report-content ul, .report-content ol {
+      margin: 0.75rem 0 1.25rem 1.5rem;
+      color: #cbd5e1;
+      font-size: 0.95rem;
+    }
+
+    .report-content li {
+      margin-bottom: 0.45rem;
+    }
+
+    .report-content strong {
+      color: #fff;
+      font-weight: 700;
+    }
+
+    .report-content em {
+      color: var(--accent-cyan-light);
+      font-style: italic;
+    }
+
+    .report-content hr {
+      border: none;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), transparent);
+      margin: 2.5rem 0;
+    }
+
+    .report-content blockquote {
+      background: rgba(16, 185, 129, 0.08);
+      border-left: 4px solid var(--accent-emerald);
+      border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+      padding: 1rem 1.25rem;
+      margin: 1.5rem 0;
+      color: #e2e8f0;
+      font-style: italic;
+    }
+
+    .report-content code {
+      font-family: 'JetBrains Mono', monospace;
+      background: rgba(0, 0, 0, 0.4);
+      color: #38bdf8;
+      padding: 0.18rem 0.45rem;
+      border-radius: 4px;
+      font-size: 0.86rem;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .report-content pre {
+      background: rgba(0, 0, 0, 0.5);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 1.25rem;
+      overflow-x: auto;
+      margin: 1.25rem 0;
+    }
+
+    .report-content pre code {
+      background: transparent;
+      padding: 0;
+      border: none;
+      color: #f1f5f9;
+      font-size: 0.88rem;
+    }
+
+    /* Markdown Table Styling */
+    .report-content .table-responsive {
+      overflow-x: auto;
+      margin: 1.75rem 0;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-subtle);
+      background: rgba(15, 23, 42, 0.6);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .report-content table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 0.88rem;
+    }
+
+    .report-content th {
+      background: rgba(16, 185, 129, 0.12);
+      color: #fff;
+      font-family: var(--font-display);
+      font-weight: 700;
+      padding: 0.9rem 1rem;
+      border-bottom: 2px solid rgba(16, 185, 129, 0.35);
+      white-space: nowrap;
+    }
+
+    .report-content td {
+      padding: 0.85rem 1rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      color: #cbd5e1;
+      vertical-align: middle;
+    }
+
+    .report-content tr:hover td {
+      background: rgba(255, 255, 255, 0.025);
+    }
+
+    .report-content tr:last-child td {
+      border-bottom: none;
+    }
+
+    .report-content a {
+      color: var(--accent-emerald-light);
+      text-decoration: none;
+      border-bottom: 1px dashed rgba(52, 211, 153, 0.4);
+      transition: var(--transition);
+    }
+
+    .report-content a:hover {
+      color: #fff;
+      border-bottom-style: solid;
+    }
+
+    /* Floating Back-to-Top Button */
+    .floating-top-btn {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: var(--accent-emerald);
+      color: #fff;
+      border: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+      cursor: pointer;
+      box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+      transition: var(--transition);
+      opacity: 0;
+      visibility: hidden;
+      z-index: 90;
+    }
+
+    .floating-top-btn.visible {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .floating-top-btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 6px 20px rgba(16, 185, 129, 0.6);
+    }
+
+    /* Print Styles */
+    @media print {
+      .report-topbar, .floating-top-btn, .report-toc-card {
+        display: none !important;
+      }
+      body {
+        background: #fff !important;
+        color: #000 !important;
+      }
+      .report-wrapper {
+        padding: 0 !important;
+        max-width: 100% !important;
+      }
+      .report-content, .report-hero-card {
+        background: none !important;
+        border: none !important;
+        box-shadow: none !important;
+        color: #000 !important;
+        padding: 0 !important;
+      }
+      .report-content h1, .report-content h2, .report-content h3, .report-content strong {
+        color: #000 !important;
+      }
+      .report-content table {
+        border: 1px solid #ccc !important;
+      }
+      .report-content th, .report-content td {
+        color: #000 !important;
+        border: 1px solid #ddd !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Sticky Navigation Bar -->
+  <header class="report-topbar">
+    <div class="report-topbar-inner">
+      <div class="brand-group">
+        <a href="/#tab-research" style="text-decoration: none;" title="Return to ISL Vision Dashboard">
+          <div class="brand-icon">
+            <i class="fa-solid fa-hands-asl-interpreting"></i>
+          </div>
+        </a>
+        <div class="brand-text">
+          <h1>ISL Vision Research Suite</h1>
+          <p>18 Research Papers Empirical Survey</p>
+        </div>
+      </div>
+
+      <div class="action-group">
+        <a href="/#tab-research" class="btn btn-secondary btn-sm" style="text-decoration: none;">
+          <i class="fa-solid fa-arrow-left"></i> Return to App
+        </a>
+        <a href="/research_gallery" target="_blank" class="btn btn-primary btn-sm" style="text-decoration: none; background: linear-gradient(135deg, #6366f1, #06b6d4); border: none;" title="Open interactive visual gallery with 189 figures, architectures, and accuracy curves">
+          <i class="fa-solid fa-images"></i> Figures Gallery (189)
+        </a>
+        <button onclick="window.print()" class="btn btn-outline btn-sm" title="Print or save as PDF">
+          <i class="fa-solid fa-print"></i> Print Report
+        </button>
+        <a href="/api/research_report?format=raw" download="RESEARCH_PAPERS_COMPREHENSIVE_SURVEY_REPORT.md" class="btn btn-primary btn-sm" style="text-decoration: none;" title="Download raw markdown file">
+          <i class="fa-solid fa-download"></i> Raw Markdown
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Report Page Wrapper -->
+  <main class="report-wrapper">
+
+    <!-- Hero Card Banner -->
+    <section class="report-hero-card">
+      <div class="hero-meta-badge">
+        <i class="fa-solid fa-certificate"></i> Peer-Reviewed Academic Survey
+      </div>
+      <h1 class="hero-title">Comprehensive Survey on 18 Research Papers</h1>
+      <p class="hero-subtitle">
+        Real-Time Indian Sign Language (ISL) Recognition, Bimanual Skeletal Normalization, and Bidirectional Translation Architectures.
+      </p>
+
+      <div class="hero-pills">
+        <div class="hero-pill">
+          <i class="fa-solid fa-layer-group" style="color: var(--accent-emerald);"></i>
+          <span>Corpus: <strong>18 Academic Publications (2017–2026)</strong></span>
+        </div>
+        <div class="hero-pill">
+          <i class="fa-solid fa-network-wired" style="color: var(--accent-cyan);"></i>
+          <span>Architecture: <strong>MediaPipe Hands + Random Forest</strong></span>
+        </div>
+        <div class="hero-pill">
+          <i class="fa-solid fa-gauge-high" style="color: var(--accent-amber);"></i>
+          <span>Inference: <strong>~3 ms Ultra Real-Time</strong></span>
+        </div>
+        <div class="hero-pill">
+          <i class="fa-solid fa-database" style="color: var(--accent-rose);"></i>
+          <span>Benchmark Dataset: <strong>42,000 Images &bull; 7,352 Landmarks</strong></span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Quick Table of Contents -->
+    <nav class="report-toc-card" aria-label="Table of contents">
+      <div class="report-toc-title">
+        <i class="fa-solid fa-list-ul" style="color: var(--accent-emerald);"></i> Quick Navigation
+      </div>
+      <div class="report-toc-links" id="toc-container">
+        <a class="toc-link" href="#executive-summary--research-context">Executive Summary</a>
+        <a class="toc-link" href="#master-comparative-synthesis-matrix-all-18-papers">Synthesis Matrix (All 18)</a>
+        <a class="toc-link" href="#detailed-paper-by-paper-analysis">Detailed Analysis (1–18)</a>
+        <a class="toc-link" href="#quantitative-synthesis--benchmark-comparison">Quantitative Benchmarks</a>
+        <a class="toc-link" href="#key-architectural-takeaways-and-alignment-with-our-platform">Architecture Alignment</a>
+      </div>
+    </nav>
+
+    <!-- Rendered Markdown Content Container -->
+    <article class="report-content" id="report-content">
+      <div style="text-align: center; padding: 3rem 0; color: var(--text-muted);">
+        <i class="fa-solid fa-spinner fa-spin fa-2x" style="color: var(--accent-emerald);"></i>
+        <p style="margin-top: 1rem;">Formatting and rendering comprehensive research survey...</p>
+      </div>
+    </article>
+
+  </main>
+
+  <!-- Floating Back-to-Top Button -->
+  <button class="floating-top-btn" id="btn-back-to-top" title="Scroll to Top" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">
+    <i class="fa-solid fa-chevron-up"></i>
+  </button>
+
+  <!-- Hidden Raw Markdown Data Source from Server -->
+  <script type="text/plain" id="raw-markdown-data">{{ report_markdown | safe }}</script>
+
+  <!-- Marked Markdown Parser (Local with CDN fallback) -->
+  <script src="/static/js/marked.min.js"></script>
+  <script>
+    if (typeof marked === "undefined") {
+      document.write('<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"><\/script>');
+    }
+  </script>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const rawMarkdown = document.getElementById("raw-markdown-data").textContent;
+      const contentEl = document.getElementById("report-content");
+
+      if (rawMarkdown && typeof marked !== "undefined") {
+        marked.setOptions({
+          gfm: true,
+          breaks: true
+        });
+
+        // Render HTML
+        contentEl.innerHTML = marked.parse(rawMarkdown);
+
+        // Wrap all tables in responsive containers
+        contentEl.querySelectorAll("table").forEach(tbl => {
+          const wrapper = document.createElement("div");
+          wrapper.className = "table-responsive";
+          tbl.parentNode.insertBefore(wrapper, tbl);
+          wrapper.appendChild(tbl);
+        });
+
+        // Add IDs to headings for smooth anchor linking
+        contentEl.querySelectorAll("h1, h2, h3").forEach(heading => {
+          if (!heading.id) {
+            heading.id = heading.textContent
+              .toLowerCase()
+              .replace(/[^a-z0-9\s-]/g, "")
+              .trim()
+              .replace(/\s+/g, "-");
+          }
+        });
+      } else {
+        contentEl.innerHTML = "<p>Error loading report content. Please view the raw markdown file directly.</p>";
+      }
+
+      // Back to top button visibility handler
+      const topBtn = document.getElementById("btn-back-to-top");
+      window.addEventListener("scroll", () => {
+        if (window.scrollY > 400) {
+          topBtn.classList.add("visible");
+        } else {
+          topBtn.classList.remove("visible");
+        }
+      });
+    });
+  </script>
+</body>
+</html>

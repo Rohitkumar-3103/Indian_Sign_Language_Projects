@@ -1,0 +1,42 @@
+# Python compiled files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+
+# Large raw dataset images (42,000 files)
+Images/data/
+Indian-Sign-Language-Detection-main/images/data
+
+# Operating system artifacts
+Thumbs.db
+.DS_Store
+
+# Environment & Secrets
+.env
+.env.*
+!.env.example
+!isl-translator-main/backend/.env.example
+
+# Scratch & Temporary Testing
+scratch/
+static/downloads/*
+!static/downloads/.gitkeep
+
+# LaTeX auxiliary build files
+thesis_template_0.1/*.aux
+thesis_template_0.1/*.bcf
+thesis_template_0.1/*.blg
+thesis_template_0.1/*.log
+thesis_template_0.1/*.out
+thesis_template_0.1/*.run.xml
+thesis_template_0.1/*.toc
+thesis_template_0.1/*.lof
+thesis_template_0.1/*.lot
+thesis_template_0.1/*.synctex.gz
+thesis_template_0.1/Chapters/*.aux
+thesis_template_0.1/Appendices/*.aux

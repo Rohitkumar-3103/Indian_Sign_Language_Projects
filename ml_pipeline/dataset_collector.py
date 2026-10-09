@@ -11,9 +11,14 @@ import csv
 import time
 import argparse
 import numpy as np
-from ml_pipeline.isl_dictionary import ISL_CLASSES, get_class_info
-from ml_pipeline.feature_extractor import ISLFeatureExtractor
-from ml_pipeline.model_trainer import train_isl_model
+try:
+    from ml_pipeline.isl_dictionary import ISL_CLASSES, get_class_info
+    from ml_pipeline.feature_extractor import ISLFeatureExtractor
+    from ml_pipeline.model_trainer import train_isl_model
+except ImportError:
+    from isl_dictionary import ISL_CLASSES, get_class_info
+    from feature_extractor import ISLFeatureExtractor
+    from model_trainer import train_isl_model
 
 def get_category_for_label(label):
     info = get_class_info(label)

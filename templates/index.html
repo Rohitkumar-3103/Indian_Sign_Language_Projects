@@ -22,7 +22,7 @@
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
   <!-- App Stylesheet -->
-  <link rel="stylesheet" href="/static/css/style.css">
+  <link rel="stylesheet" href="/static/css/style.css?v=1.5">
 </head>
 <body>
   <div class="app-container">
@@ -59,10 +59,13 @@
         <i class="fa-solid fa-microphone-lines"></i>
         <span>Voice to Sign</span>
       </button>
+      <button class="tab-btn" data-tab="tab-youtube-to-sign" id="btn-tab-youtube-to-sign">
+        <i class="fa-brands fa-youtube" style="color: #ef4444;"></i>
+        <span>YouTube to Sign</span>
+      </button>
       <button class="tab-btn" data-tab="tab-studio" id="btn-tab-studio">
         <i class="fa-solid fa-camera-rotate"></i>
         <span>Dataset Studio</span>
-        <span class="tab-badge" id="studio-sample-badge">2,926 Samples</span>
       </button>
       <button class="tab-btn" data-tab="tab-dictionary" id="btn-tab-dictionary">
         <i class="fa-solid fa-book-open"></i>
@@ -71,7 +74,6 @@
       <button class="tab-btn" data-tab="tab-research" id="btn-tab-research">
         <i class="fa-solid fa-graduation-cap"></i>
         <span>Research & Benchmarks</span>
-        <span class="tab-badge">16 Papers</span>
       </button>
     </nav>
 
@@ -114,9 +116,17 @@
 
               <!-- Bottom Gesture Recognition Overlay -->
               <div class="gesture-hud-overlay" id="gesture-overlay" style="display: none;">
-                <div class="recognized-symbol" id="hud-symbol">-</div>
+                <div class="recognized-symbol-box">
+                  <div class="recognized-symbol" id="hud-symbol">-</div>
+                  <div class="hud-hold-progress-track" title="Hold steady to commit symbol to sentence">
+                    <div class="hud-hold-progress-fill" id="hud-hold-bar"></div>
+                  </div>
+                </div>
                 <div class="recognized-meta">
-                  <span class="recognized-name" id="hud-name">Position hand to start</span>
+                  <div class="recognized-meta-top">
+                    <span class="recognized-name" id="hud-name">Position hand to start</span>
+                    <span class="hud-commit-badge" id="hud-commit-badge"><i class="fa-solid fa-hourglass-start"></i> HOLDING</span>
+                  </div>
                   <div class="confidence-bar-wrap">
                     <div class="confidence-bar-bg">
                       <div class="confidence-bar-fill" id="hud-confidence-bar"></div>
@@ -178,13 +188,17 @@
           <div class="info-card">
             <div class="info-header">
               <span>Top Predictions</span>
-              <i class="fa-solid fa-chart-simple"></i>
+              <span style="font-size: 0.72rem; padding: 2px 7px; border-radius: 999px; background: rgba(99, 102, 241, 0.15); color: #818cf8; border: 1px solid rgba(99, 102, 241, 0.3);"><i class="fa-solid fa-microchip"></i> Dual AI Engine</span>
             </div>
             <div class="top-predictions-list" id="predictions-list">
               <div class="pred-row">
                 <span class="pred-label">-</span>
                 <span class="pred-percent">0%</span>
               </div>
+            </div>
+            <div class="sub-engine-row" id="keras-engine-row" style="margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px dashed rgba(255,255,255,0.1); font-size: 0.78rem; display: flex; justify-content: space-between; align-items: center;">
+              <span style="color: var(--text-muted);"><i class="fa-solid fa-brain" style="color: #818cf8; margin-right: 4px;"></i> Keras 5-Layer DNN:</span>
+              <span id="keras-pred-val" style="color: #a5b4fc; font-weight: 600;">Standby</span>
             </div>
           </div>
 
@@ -267,7 +281,9 @@
           <div class="player-stage" id="player-stage">
             <span class="stage-step-tag" id="player-step-tag">Sign 1 of 1</span>
             <span class="stage-hands-tag hand-tag one-hand" id="player-hands-tag">1 Hand</span>
+            <span class="stage-video-badge" id="player-video-badge" style="display: none;"><i class="fa-solid fa-play"></i> Video Mode</span>
             <img id="player-sign-image" class="stage-sign-image" src="/static/assets/signs/HELLO.jpg" alt="Sign Pose">
+            <video id="player-sign-video" class="stage-sign-video" playsinline loop muted style="display: none;"></video>
           </div>
 
           <div class="player-meta-box">
@@ -287,7 +303,7 @@
             <button class="btn btn-outline btn-sm" id="btn-player-prev" title="Previous Sign">
               <i class="fa-solid fa-backward-step"></i> Prev
             </button>
-            <button class="btn btn-primary btn-sm" id="btn-player-toggle" style="min-width: 110px;">
+            <button class="btn btn-primary btn-sm" id="btn-player-toggle" style="min-width: 100px;">
               <i class="fa-solid fa-play"></i> Play
             </button>
             <button class="btn btn-outline btn-sm" id="btn-player-next" title="Next Sign">
@@ -295,6 +311,9 @@
             </button>
             <button class="btn btn-secondary btn-sm" id="btn-player-replay" title="Replay from start">
               <i class="fa-solid fa-rotate-right"></i>
+            </button>
+            <button class="btn btn-outline btn-sm" id="btn-player-media-toggle" title="Toggle between HD Video & Static Image">
+              <i class="fa-solid fa-film"></i> <span id="player-media-label">Video</span>
             </button>
 
             <div class="speed-selector">
@@ -330,7 +349,7 @@
           <div>
             <h2 style="font-family: var(--font-display); font-size: 1.8rem; font-weight: 800;">Voice to Indian Sign Language</h2>
             <p style="color: var(--text-secondary); max-width: 540px; margin: 0.4rem auto 0; font-size: 0.95rem;">
-              Speak into your microphone in English or Hindi. Your voice is transcribed in real-time and converted directly into animated ISL gestures.
+              Speak into your microphone in English or Hindi.
             </p>
           </div>
 
@@ -390,7 +409,9 @@
             <div class="player-stage" id="voice-player-stage">
               <span class="stage-step-tag" id="voice-step-tag">Sign 0 of 0</span>
               <span class="stage-hands-tag hand-tag one-hand" id="voice-hands-tag">1 Hand</span>
+              <span class="stage-video-badge" id="voice-video-badge" style="display: none;"><i class="fa-solid fa-play"></i> Video Mode</span>
               <img id="voice-sign-image" class="stage-sign-image" src="/static/assets/signs/HELLO.jpg" alt="Sign Pose">
+              <video id="voice-sign-video" class="stage-sign-video" playsinline loop muted style="display: none;"></video>
             </div>
 
             <div class="player-meta-box">
@@ -408,6 +429,9 @@
               <button class="btn btn-outline btn-sm" id="btn-voice-prev"><i class="fa-solid fa-backward-step"></i></button>
               <button class="btn btn-primary btn-sm" id="btn-voice-toggle" style="min-width: 100px;"><i class="fa-solid fa-play"></i> Play</button>
               <button class="btn btn-outline btn-sm" id="btn-voice-next"><i class="fa-solid fa-forward-step"></i></button>
+              <button class="btn btn-outline btn-sm" id="btn-voice-media-toggle" title="Toggle between HD Video & Static Image">
+                <i class="fa-solid fa-film"></i> <span id="voice-media-label">Video</span>
+              </button>
             </div>
           </div>
 
@@ -418,6 +442,173 @@
               <span id="voice-filmstrip-count" style="font-size: 0.8rem; color: var(--accent-emerald-light);">0 Signs</span>
             </div>
             <div class="filmstrip-container" id="voice-filmstrip-scroller"></div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         Tab 3.5: YouTube to Sign (Audio/Video Spoken Word Synchronized Translation)
+         ==================================================================== -->
+    <section class="tab-content" id="tab-youtube-to-sign">
+      <div style="display: flex; flex-direction: column; gap: 1.5rem; max-width: 1400px; margin: 0 auto;">
+        
+        <!-- Header & Control Bar -->
+        <div class="card" style="background: var(--bg-card); border: 1px solid var(--border-accent); border-radius: var(--radius-lg); padding: 1.5rem; backdrop-filter: blur(16px);">
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.25rem;">
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+              <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(239,68,68,0.15); border: 1px solid rgba(239,68,68,0.35); display: flex; align-items: center; justify-content: center;">
+                <i class="fa-brands fa-youtube" style="color: #ef4444; font-size: 1.5rem;"></i>
+              </div>
+              <div>
+                <h2 style="font-family: var(--font-display); font-size: 1.35rem; font-weight: 700; color: #fff; margin: 0;">YouTube Video to ISL Translator</h2>
+              </div>
+            </div>
+            
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+              <div class="stat-pill" style="background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.25); color: #34d399; font-size: 0.8rem; padding: 0.4rem 0.8rem; border-radius: 9999px;">
+                <i class="fa-solid fa-circle-check"></i> Deepgram Speech AI Connected
+              </div>
+              <div class="stat-pill" style="background: rgba(99,102,241,0.1); border: 1px solid rgba(99,102,241,0.25); color: #818cf8; font-size: 0.8rem; padding: 0.4rem 0.8rem; border-radius: 9999px;">
+                <i class="fa-solid fa-video"></i> 203 Gesture Videos + 26 Letters
+              </div>
+            </div>
+          </div>
+
+          <!-- Input Row -->
+          <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+            <div style="flex: 1; min-width: 300px; position: relative;">
+              <input type="text" id="yt-url-input" placeholder="Paste YouTube video URL (e.g. https://www.youtube.com/watch?v=...)" 
+                style="width: 100%; padding: 0.85rem 1rem 0.85rem 2.75rem; background: rgba(0,0,0,0.45); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); color: #fff; font-size: 0.95rem; outline: none;">
+              <i class="fa-brands fa-youtube" style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: #ef4444; font-size: 1.1rem;"></i>
+            </div>
+            <button class="btn btn-outline" id="btn-yt-paste" style="padding: 0.85rem 1.25rem;">
+              <i class="fa-regular fa-paste"></i> Paste
+            </button>
+            <button class="btn btn-primary" id="btn-yt-convert" style="padding: 0.85rem 1.75rem; background: linear-gradient(135deg, #ef4444, #dc2626); border: none; font-weight: 700;">
+              <i class="fa-solid fa-wand-magic-sparkles"></i> Convert Video
+            </button>
+          </div>
+
+          <!-- Quick Test Demos -->
+          <div style="display: flex; align-items: center; gap: 0.75rem; margin-top: 1rem; flex-wrap: wrap;">
+            <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;"><i class="fa-solid fa-bolt" style="color: #f59e0b;"></i> Instant Demos:</span>
+            <button class="btn btn-outline btn-sm yt-demo-chip" data-demo="demo-welcome" style="padding: 0.3rem 0.75rem; font-size: 0.78rem;">
+              <i class="fa-solid fa-play"></i> Welcome to ISL (Demo)
+            </button>
+          </div>
+
+          <!-- Status / Progress Banner -->
+          <div id="yt-status-banner" style="display: none; margin-top: 1rem; padding: 0.75rem 1rem; border-radius: var(--radius-md); background: rgba(99,102,241,0.12); border: 1px solid rgba(99,102,241,0.3); font-size: 0.85rem; color: #c7d2fe; align-items: center; gap: 0.75rem;">
+            <i class="fa-solid fa-spinner fa-spin" id="yt-status-spinner"></i>
+            <span id="yt-status-text">Processing YouTube video...</span>
+          </div>
+        </div>
+
+        <!-- Video Player & ISL Demonstration Showcase Grid -->
+        <div id="yt-showcase-grid" style="display: grid; grid-template-columns: 1.25fr 1fr; gap: 1.5rem;">
+          
+          <!-- Left: Video Player Card -->
+          <div class="card" style="background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 1.25rem; display: flex; flex-direction: column; gap: 1rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <i class="fa-solid fa-play" style="color: #ef4444;"></i>
+                <span id="yt-video-title" style="font-weight: 700; color: #fff; font-size: 0.95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 380px;">Video Player</span>
+              </div>
+              <span id="yt-playback-timer" style="font-family: monospace; font-size: 0.8rem; color: var(--text-muted);">00:00 / 00:00</span>
+            </div>
+
+            <!-- Video Container -->
+            <div style="width: 100%; aspect-ratio: 16/9; background: #000; border-radius: var(--radius-md); overflow: hidden; position: relative; border: 1px solid rgba(255,255,255,0.08);">
+              <div id="yt-iframe-container" style="width: 100%; height: 100%;">
+                <video id="yt-html5-player" playsinline controls style="width: 100%; height: 100%; object-fit: contain; display: none;"></video>
+                <div id="yt-player-target" style="width: 100%; height: 100%;"></div>
+              </div>
+              <!-- Floating Live Subtitle Banner -->
+              <div id="yt-live-subtitle" style="position: absolute; bottom: 45px; left: 5%; right: 5%; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); padding: 0.5rem 1rem; border-radius: 8px; text-align: center; color: #f8fafc; font-size: 1rem; font-weight: 600; border: 1px solid rgba(255,255,255,0.15); pointer-events: none; transition: opacity 0.2s;">
+                Play video to start translation
+              </div>
+            </div>
+
+            <!-- Video Controls Row -->
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
+              <div style="display: flex; gap: 0.4rem;">
+                <button class="btn btn-outline btn-sm" id="btn-yt-rewind" style="padding: 0.35rem 0.75rem;"><i class="fa-solid fa-rotate-left"></i> -5s</button>
+                <button class="btn btn-primary btn-sm" id="btn-yt-play-toggle" style="padding: 0.35rem 1rem;"><i class="fa-solid fa-play"></i> Play</button>
+                <button class="btn btn-outline btn-sm" id="btn-yt-forward" style="padding: 0.35rem 0.75rem;">+5s <i class="fa-solid fa-rotate-right"></i></button>
+              </div>
+              <div style="display: flex; align-items: center; gap: 0.4rem;">
+                <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: 700;">Speed:</span>
+                <button class="btn btn-outline btn-sm yt-speed-btn" data-speed="0.5" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;">0.5x</button>
+                <button class="btn btn-outline btn-sm yt-speed-btn active" data-speed="1.0" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;">1.0x</button>
+                <button class="btn btn-outline btn-sm yt-speed-btn" data-speed="1.25" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;">1.25x</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right: Real-Time ISL Translation HUD -->
+          <div class="card" style="background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 1.25rem; display: flex; flex-direction: column; gap: 1rem;">
+            
+            <!-- Active Word Header -->
+            <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 0.75rem; border-bottom: 1px solid var(--border-subtle);">
+              <div>
+                <span style="font-size: 0.72rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700; letter-spacing: 0.05em;">Currently Spoken Word</span>
+                <div id="yt-active-word" style="font-family: var(--font-display); font-size: 2.2rem; font-weight: 800; color: #f59e0b; line-height: 1.1; margin-top: 0.2rem;">
+                  READY
+                </div>
+              </div>
+              <div style="text-align: right;">
+                <span id="yt-word-timing" style="font-size: 0.75rem; font-family: monospace; background: rgba(245,158,11,0.15); border: 1px solid rgba(245,158,11,0.3); color: #fbbf24; padding: 0.25rem 0.6rem; border-radius: 6px;">0.0s - 0.0s</span>
+                <div id="yt-word-confidence" style="font-size: 0.7rem; color: var(--text-muted); margin-top: 0.25rem;">100% Match</div>
+              </div>
+            </div>
+
+            <!-- Dynamic ISL Visual Representation Stage -->
+            <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+              
+              <!-- Full-Word Video Demonstration (when matched in 203 vocabulary dictionary) -->
+              <div id="yt-video-match-container" style="background: rgba(0,0,0,0.4); border: 1px solid var(--border-accent); border-radius: var(--radius-md); padding: 0.75rem; display: flex; flex-direction: column; gap: 0.5rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <span style="font-size: 0.75rem; font-weight: 700; color: var(--accent-emerald-light); display: flex; align-items: center; gap: 0.4rem;">
+                    <i class="fa-solid fa-circle-check"></i> ISL Gesture Video Demonstration
+                  </span>
+                  <span id="yt-match-badge" class="badge" style="background: rgba(16,185,129,0.15); color: #34d399; font-size: 0.7rem; padding: 0.15rem 0.5rem; border-radius: 4px;">Dictionary Match</span>
+                </div>
+                <div style="width: 100%; aspect-ratio: 4/3; max-height: 220px; background: #000; border-radius: 6px; overflow: hidden; display: flex; justify-content: center; align-items: center;">
+                  <video id="yt-isl-demonstration-video" playsinline loop muted autoplay style="width: 100%; height: 100%; object-fit: contain;"></video>
+                </div>
+              </div>
+
+              <!-- Fingerspelling Alphabet Sign Cards Row -->
+              <div>
+                <span style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 0.5rem;">
+                  <i class="fa-solid fa-hand"></i> Alphabet Fingerspelling Sequence:
+                </span>
+                <div id="yt-letters-container" style="display: flex; gap: 0.5rem; flex-wrap: wrap; justify-content: flex-start; max-height: 140px; overflow-y: auto; padding: 0.25rem;">
+                  <!-- Dynamically populated letter cards -->
+                </div>
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+        <!-- Full Synchronized Transcript Box -->
+        <div class="card" style="background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 1.25rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+              <i class="fa-solid fa-align-left" style="color: var(--primary-light);"></i>
+              <strong style="color: #fff; font-size: 0.95rem;">Interactive Synchronized Transcript</strong>
+              <span id="yt-transcript-word-count" style="font-size: 0.75rem; color: var(--text-muted);">(0 words)</span>
+            </div>
+            <span style="font-size: 0.75rem; color: var(--text-muted);">Click any word to seek playback</span>
+          </div>
+
+          <div id="yt-transcript-flow" style="display: flex; flex-wrap: wrap; gap: 0.4rem; max-height: 180px; overflow-y: auto; padding: 0.75rem; background: rgba(0,0,0,0.35); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); line-height: 1.8;">
+            <span style="color: var(--text-muted); font-size: 0.85rem;">Convert a YouTube video or click the demo above to generate synchronized word timestamps.</span>
           </div>
         </div>
 
@@ -445,7 +636,7 @@
               <button class="cat-btn" data-cat="word">Words</button>
             </div>
 
-            <div class="class-grid-selector" id="studio-class-selector">
+            <div class="class-grid-selector cat-all" id="studio-class-selector">
               <!-- Dynamically populated via JS -->
             </div>
           </div>
@@ -485,7 +676,7 @@
               </div>
               <div class="stat-item">
                 <span class="stat-label">Total Dataset</span>
-                <span class="stat-value" id="studio-total-samples">2,925</span>
+                <span class="stat-value" id="studio-total-samples">7,352</span>
               </div>
             </div>
           </div>
@@ -532,10 +723,11 @@
         </div>
 
         <div class="category-filter">
-          <button class="cat-btn active" data-dict-cat="all">All Signs</button>
-          <button class="cat-btn" data-dict-cat="alphabet">Alphabets (A-Z)</button>
-          <button class="cat-btn" data-dict-cat="number">Numbers (0-9)</button>
-          <button class="cat-btn" data-dict-cat="word">Phrases & Words</button>
+          <button class="cat-btn active" data-dict-cat="all">All Signs (204)</button>
+          <button class="cat-btn" data-dict-cat="alphabet">Alphabets (A-Z) (26)</button>
+          <button class="cat-btn" data-dict-cat="number">Numbers (0-9) (10)</button>
+          <button class="cat-btn" data-dict-cat="word">Words & Phrases (168)</button>
+          <button class="cat-btn" data-dict-cat="video"><i class="fa-solid fa-film"></i> With Video (203)</button>
         </div>
       </div>
 
@@ -564,71 +756,203 @@
           </div>
           <div class="benchmark-stat">
             <span class="bench-title">Vocabulary Size</span>
-            <span class="bench-number">45 Signs</span>
-            <span class="bench-sub">A-Z, 0-9, Key Phrases</span>
+            <span class="bench-number">204 Signs</span>
+            <span class="bench-sub">203 Videos &bull; 42k Images</span>
           </div>
           <div class="benchmark-stat">
             <span class="bench-title">Active Model Accuracy</span>
-            <span class="bench-number" id="bench-val-acc" style="color: var(--accent-cyan);">94.2%</span>
-            <span class="bench-sub" id="bench-total-samples">On Stratified Test Set</span>
+            <span class="bench-number" id="bench-val-acc" style="color: var(--accent-cyan);">85.2%</span>
+            <span class="bench-sub" id="bench-total-samples">On 7,352 Stratified Samples</span>
           </div>
         </div>
 
         <!-- Research Papers Table -->
         <div class="papers-table-card">
-          <div class="info-header" style="margin-bottom: 1.25rem;">
-            <span>Survey of Research Papers in Project Repository</span>
-            <i class="fa-solid fa-book-bookmark"></i>
+          <div class="info-header" style="margin-bottom: 1.25rem; color: #ffffff;">
+            <span style="color: #ffffff;">Survey of Research Papers in Project Repository</span>
+            <i class="fa-solid fa-book-bookmark" style="color: #ffffff;"></i>
           </div>
           
           <table class="styled-table">
             <thead>
-              <tr>
-                <th>Title / Publication</th>
-                <th>Architecture / Method</th>
-                <th>Gestures / Scope</th>
-                <th>Key Findings & Integration</th>
+              <tr style="color: #ffffff;">
+                <th style="color: #ffffff;">Title / Publication</th>
+                <th style="color: #ffffff;">Architecture / Method</th>
+                <th style="color: #ffffff;">Gestures / Scope</th>
+                <th style="color: #ffffff;">Key Findings & Integration</th>
               </tr>
             </thead>
             <tbody>
               <tr>
-                <td><strong>Indian Sign Language Recognition Using Mediapipe Holistic</strong></td>
-                <td><span class="paper-badge">MediaPipe + Deep Learning</span></td>
-                <td>ISL Alphabets & Words</td>
-                <td>Leverages 3D landmark extraction to eliminate complex skin-color segmentation bottlenecks.</td>
+                <td><strong>1. A Comprehensive Approach to ISL Recognition (Rawat et al. 2024)</strong></td>
+                <td><span class="paper-badge">MediaPipe Holistic + LSTM</span></td>
+                <td>Dynamic Words &amp; Static Letters</td>
+                <td><strong style="color: var(--accent-cyan);">96.97%</strong> &bull; Validates sequential temporal debouncing and 543 holistic landmarks.</td>
               </tr>
               <tr>
-                <td><strong>Two-Handed Indian Sign Language Recognition Using MediaPipe and Machine Learning</strong></td>
-                <td><span class="paper-badge">MediaPipe + Random Forest / SVM</span></td>
-                <td>Two-Handed ISL Signs</td>
-                <td>Emphasizes relative dual-hand coordinate normalization; adopted in our 156-dim feature pipeline.</td>
+                <td><strong>2. Hand Gesture Recognition Using Deep Learning (Vashisth et al. 2023)</strong></td>
+                <td><span class="paper-badge">Deep CNN + Preprocessing</span></td>
+                <td>35 Classes (1-9, A-Z)</td>
+                <td><strong style="color: var(--accent-cyan);">92.83%</strong> &bull; Demonstrates raw CNN vulnerability to lighting; motivates landmark invariance.</td>
               </tr>
               <tr>
-                <td><strong>Real Time Indian Sign Language Detection Using LSTM and Keypoint Extraction</strong></td>
-                <td><span class="paper-badge">MediaPipe + LSTM RNN</span></td>
-                <td>Dynamic Temporal Signs</td>
-                <td>Sequential frame tracking for continuous signs; provides baseline for word/phrase debouncing.</td>
-              </tr>
-              <tr>
-                <td><strong>Sign_Comm: A Real-Time ISL Recognition System</strong></td>
-                <td><span class="paper-badge">CNN + OpenCV</span></td>
-                <td>Real-time Communication</td>
-                <td>Real-time inclusive communication with Text-to-Speech synthesis for bidirectional exchange.</td>
-              </tr>
-              <tr>
-                <td><strong>Indian Sign Language to Text/Speech Translation</strong></td>
-                <td><span class="paper-badge">Feature Extraction + TTS</span></td>
-                <td>Bidirectional Voice Output</td>
-                <td>Translates recognized gestures into voice output for mute and deaf community members.</td>
-              </tr>
-              <tr>
-                <td><strong>Integrative Survey on Indian Sign Language Recognition (Damdoo 2025)</strong></td>
+                <td><strong>3. Integrative Survey on ISL Recognition &amp; Translation (Damdoo 2025)</strong></td>
                 <td><span class="paper-badge">Comprehensive Survey</span></td>
-                <td>Survey & Taxonomy</td>
-                <td>Reviews single vs two-handed challenges, lighting invariance, and ISLRTC standardization.</td>
+                <td>100+ Studies (State of Art)</td>
+                <td><strong style="color: var(--accent-cyan);">State-of-Art</strong> &bull; Establishes bimanual ISL mandate and bidirectional voice/sign architecture.</td>
+              </tr>
+              <tr>
+                <td><strong>4. ISL Recognition Using SURF with SVM and CNN (Katoch et al. 2022)</strong></td>
+                <td><span class="paper-badge">SURF + BoVW + SVM / CNN</span></td>
+                <td>35 Classes (1-9, A-Z)</td>
+                <td><strong style="color: var(--accent-cyan);">99.17% / 99.64%</strong> &bull; Proves rotation and scale-invariant descriptors maximize margin separation.</td>
+              </tr>
+              <tr>
+                <td><strong>5. ISL Detection for Real-Time Translation (Singhal et al. 2023)</strong></td>
+                <td><span class="paper-badge">MediaPipe + Random Forest</span></td>
+                <td>35 Classes (1-9, A-Z)</td>
+                <td><strong style="color: var(--accent-cyan);">99.95%</strong> &bull; Directly justifies Random Forest as the optimal fast classifier for coordinate data.</td>
+              </tr>
+              <tr>
+                <td><strong>6. Indian Sign Language Recognition System (Rokade &amp; Jadav 2018)</strong></td>
+                <td><span class="paper-badge">Skin Color + PCA + ANN</span></td>
+                <td>Static Alphabets</td>
+                <td><strong style="color: var(--accent-cyan);">94.37%</strong> &bull; Highlights classical color segmentation failures solved by our MediaPipe pipeline.</td>
+              </tr>
+              <tr>
+                <td><strong>7. ISL Recognition System for Dynamic Signs (Singh &amp; Mittal 2022)</strong></td>
+                <td><span class="paper-badge">Optical Flow + MHI + LSTM</span></td>
+                <td>Dynamic Phrases &amp; Motion</td>
+                <td><strong style="color: var(--accent-cyan);">97.23%</strong> &bull; Guides our temporal hysteresis state machine and word hold confirmation.</td>
+              </tr>
+              <tr>
+                <td><strong>8. ISL Recognition Using MediaPipe Holistic (Goyal &amp; Velmathi 2023)</strong></td>
+                <td><span class="paper-badge">MediaPipe Holistic + MLP</span></td>
+                <td>Conversational Terms</td>
+                <td><strong style="color: var(--accent-cyan);">90.00%</strong> &bull; Confirms upper-body pose context resolves identical hand shape ambiguities.</td>
+              </tr>
+              <tr>
+                <td><strong>9. ISL to Text/Speech Translation (Bhanu 2025)</strong></td>
+                <td><span class="paper-badge">Keypoints + CNN + TTS</span></td>
+                <td>Sign to Spoken Audio</td>
+                <td><strong style="color: var(--accent-cyan);">93.67%</strong> &bull; Validates integrated Text-to-Speech synthesis for deaf-hearing communication.</td>
+              </tr>
+              <tr>
+                <td><strong>10. ISL Recognition Using ANN and SVM (Ekbote &amp; Joshi 2017)</strong></td>
+                <td><span class="paper-badge">Geometric Descriptors + SVM</span></td>
+                <td>32 Static Gestures</td>
+                <td><strong style="color: var(--accent-cyan);">97.10% (SVM)</strong> &bull; Proves margin-based classifiers excel on structured geometric hand features.</td>
+              </tr>
+              <tr>
+                <td><strong>11. Real-Time Detection Using LSTM &amp; Keypoints (Tharsan 2022)</strong></td>
+                <td><span class="paper-badge">MediaPipe + Stacked LSTM</span></td>
+                <td>Continuous Sentences</td>
+                <td><strong style="color: var(--accent-cyan);">91.30%</strong> &bull; Informs continuous sentence formation and phrase sequence accumulation.</td>
+              </tr>
+              <tr>
+                <td><strong>12. SignSpeak: ISL Recognition with ML Precision (Mishra 2025)</strong></td>
+                <td><span class="paper-badge">MediaPipe + Random Forest</span></td>
+                <td>Dual-Hand Alphabets</td>
+                <td><strong style="color: var(--accent-cyan);">94.50%</strong> &bull; Corroborates our Random Forest model accuracy benchmarks (85.2%–94.5%).</td>
+              </tr>
+              <tr>
+                <td><strong>13. Sign Comm: Real-Time ISL Using Deep Learning (Ilakkia 2024)</strong></td>
+                <td><span class="paper-badge">Deep CNN + ResNet</span></td>
+                <td>Inclusive Communication</td>
+                <td><strong style="color: var(--accent-cyan);">97.00%</strong> &bull; Directly mirrors our project mission of two-way inclusive interaction.</td>
+              </tr>
+              <tr>
+                <td><strong>14. Two-Handed ISL Recognition Using MediaPipe (Awalkar 2025)</strong></td>
+                <td><span class="paper-badge">Dual MediaPipe + Random Forest</span></td>
+                <td>Two-Handed Alphabet</td>
+                <td><strong style="color: var(--accent-cyan);">98.20%</strong> &bull; Core empirical validation for our 156-dim invariant dual-hand feature vector.</td>
+              </tr>
+              <tr>
+                <td><strong>15. Indian Sign Language Recognition (Maben et al. 2021)</strong></td>
+                <td><span class="paper-badge">Contour Tracking + KNN</span></td>
+                <td>Emergency &amp; Daily Signs</td>
+                <td><strong style="color: var(--accent-cyan);">HCI Design</strong> &bull; Provides human-centric accessibility guidelines for our web interface.</td>
+              </tr>
+              <tr>
+                <td><strong>16. Real-Time Indian Sign Language Detection (IJERT 2021)</strong></td>
+                <td><span class="paper-badge">Real-Time Edge CNN</span></td>
+                <td>Live Webcam Feed</td>
+                <td><strong style="color: var(--accent-cyan);">90.20%</strong> &bull; Guides frame rate stabilization and canvas overlay rendering at 30 FPS.</td>
+              </tr>
+              <tr>
+                <td><strong>17. Speech to ISL Translation Using NLP (Sharma et al. 2022)</strong></td>
+                <td><span class="paper-badge">NLP + HMM + Video DB</span></td>
+                <td>Speech &amp; Text to ISL Phrases</td>
+                <td><strong style="color: var(--accent-cyan);">86.6% NPS (83.3)</strong> &bull; Direct architectural validation of our reverse Voice-to-Sign synthesis and character fingerspelling fallback.</td>
+              </tr>
+              <tr>
+                <td><strong>18. Real-Time Sign Language Translator Leveraging Transformers (Khakha et al. 2026)</strong></td>
+                <td><span class="paper-badge" style="background: rgba(139,92,246,0.15); color: #a78bfa; border: 1px solid rgba(139,92,246,0.35);">3-Layer Transformer + MediaPipe</span></td>
+                <td>26 Classes (44,200 Samples) &bull; 76.6% Bimanual</td>
+                <td><strong style="color: var(--accent-emerald);">97.40% Accuracy</strong> &bull; Validates multimodal self-attention &amp; proves two-handed coordinate spatial modeling directly aligns with our 156-dim feature extractor.</td>
               </tr>
             </tbody>
           </table>
+        </div>
+
+        <!-- Project Research & Technical Documentation Card -->
+        <div class="papers-table-card" style="margin-top: 1.5rem; background: linear-gradient(135deg, rgba(20,24,35,0.85), rgba(30,35,55,0.85)); border: 1px solid rgba(16,185,129,0.3);">
+          <div class="info-header" style="margin-bottom: 1.25rem;">
+            <div>
+              <span style="font-size: 1.05rem; font-weight: 700; color: #fff;"><i class="fa-solid fa-file-lines" style="color: var(--accent-emerald); margin-right: 0.5rem;"></i> Project Research &amp; Technical Documentation</span>
+              <p style="font-size: 0.8rem; color: var(--text-muted); margin: 0.2rem 0 0 0;">Comprehensive Research Survey on 18 Academic Papers &bull; Real-Time ISL Engineering Suite</p>
+            </div>
+            <span class="badge" style="background: rgba(16,185,129,0.15); color: #34d399; border: 1px solid rgba(16,185,129,0.4);"><i class="fa-solid fa-microchip"></i> ISL Projects Core</span>
+          </div>
+
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem;">
+            <!-- Document Card 1: 18-Paper Research Survey Report -->
+            <div style="background: rgba(15,18,25,0.7); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 1.1rem; display: flex; flex-direction: column; justify-content: space-between;">
+              <div>
+                <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+                  <i class="fa-solid fa-book-bookmark" style="color: var(--accent-cyan); font-size: 1.3rem;"></i>
+                  <strong style="color: #fff; font-size: 0.95rem;">18 Research Papers Comprehensive Survey</strong>
+                </div>
+                <p style="font-size: 0.8rem; color: var(--text-secondary); line-height: 1.4; margin-bottom: 0.6rem;">
+                  Complete empirical and comparative survey synthesizing all 18 academic publications in the repository, evaluating MediaPipe, CNNs, LSTMs, Transformers, NLP pipelines, and Random Forest architectures.
+                </p>
+                <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.8rem;">
+                  <span><strong>Scope:</strong> 18 Peer-Reviewed Research Papers (2017–2026)</span><br>
+                  <span><strong>Dataset Validation:</strong> 42,000 Images &bull; 44,200 Transformer Samples &bull; 7,352 Landmark Samples</span>
+                </div>
+              </div>
+              <div style="display: flex; gap: 0.5rem;">
+                <a href="/research_report" target="_blank" class="btn btn-primary btn-sm" style="flex: 1; justify-content: center; text-decoration: none;">
+                  <i class="fa-solid fa-book-open-reader"></i> Read Full Survey Report
+                </a>
+              </div>
+            </div>
+
+            <!-- Document Card 2: End-to-End Jupyter Notebook Pipeline -->
+            <div style="background: rgba(15,18,25,0.7); border: 1px solid rgba(245,158,11,0.3); border-radius: var(--radius-md); padding: 1.1rem; display: flex; flex-direction: column; justify-content: space-between;">
+              <div>
+                <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+                  <i class="fa-brands fa-python" style="color: #f59e0b; font-size: 1.4rem;"></i>
+                  <strong style="color: #fff; font-size: 0.95rem;">Jupyter Notebook ML Pipeline</strong>
+                </div>
+                <p style="font-size: 0.8rem; color: var(--text-secondary); line-height: 1.4; margin-bottom: 0.6rem;">
+                  Complete 21-cell Python Jupyter Notebook documenting landmark extraction, EDA, multi-model benchmarking (RF, SVM, KNN), and visual confusion matrix diagnostics.
+                </p>
+                <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.8rem;">
+                  <span><strong>File:</strong> <code>Indian_Sign_Language_Pipeline.ipynb</code></span><br>
+                  <span><strong>Features:</strong> 156-dim Vectors &bull; 5-Fold Stratified CV &bull; Pre-Executed</span>
+                </div>
+              </div>
+              <div style="display: flex; gap: 0.5rem;">
+                <a href="/notebook" target="_blank" class="btn btn-primary btn-sm" style="flex: 1; justify-content: center; text-decoration: none; background: linear-gradient(135deg, #f59e0b, #ef4444); border: none;">
+                  <i class="fa-solid fa-code"></i> View Notebook
+                </a>
+                <a href="/download_notebook" class="btn btn-outline btn-sm" style="text-decoration: none;" title="Download native .ipynb file">
+                  <i class="fa-solid fa-download"></i> .ipynb
+                </a>
+              </div>
+            </div>
+          </div>
         </div>
 
       </div>
@@ -639,24 +963,78 @@
   <!-- Toast Notification Container -->
   <div class="toast-container" id="toast-container"></div>
 
-  <!-- Practice Challenge Modal -->
-  <div id="practice-modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(12px); z-index: 10000; align-items: center; justify-content: center;">
-    <div style="background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); width: 90%; max-width: 600px; padding: 2rem; display: flex; flex-direction: column; gap: 1.25rem; box-shadow: var(--shadow-md);">
+  <!-- Video Demonstration Showcase Modal -->
+  <div id="video-modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(14px); z-index: 10001; align-items: center; justify-content: center;">
+    <div class="video-modal-card">
       <div style="display: flex; justify-content: space-between; align-items: center;">
-        <h2 style="font-family: var(--font-display); font-size: 1.4rem;">Practice Challenge: <span id="modal-sign-name" style="color: var(--accent-emerald);">-</span></h2>
+        <div style="display: flex; align-items: center; gap: 0.65rem;">
+          <span class="video-badge-pill"><i class="fa-solid fa-play"></i> Full HD ISL Video</span>
+          <h2 id="video-modal-title" style="font-family: var(--font-display); font-size: 1.25rem; font-weight: 700; margin: 0;">Sign Demonstration</h2>
+        </div>
+        <button id="btn-close-video-modal" class="btn btn-outline btn-sm" style="padding: 0.3rem 0.6rem;"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <div style="width: 100%; border-radius: var(--radius-md); overflow: hidden; background: #000; border: 1px solid var(--border-subtle); display: flex; justify-content: center; align-items: center; max-height: 380px;">
+        <video id="modal-video-player" playsinline autoplay loop controls style="width: 100%; max-height: 380px; object-fit: contain;"></video>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <span id="video-modal-hands" class="hand-tag one-hand">1 Hand</span>
+          <div style="display: flex; gap: 0.4rem; align-items: center;">
+            <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: 700;">Speed:</span>
+            <button class="btn btn-outline btn-sm vid-speed-btn" data-speed="0.5" style="padding: 0.2rem 0.5rem; font-size: 0.75rem;">0.5x</button>
+            <button class="btn btn-outline btn-sm vid-speed-btn active" data-speed="1.0" style="padding: 0.2rem 0.5rem; font-size: 0.75rem;">1.0x</button>
+            <button class="btn btn-outline btn-sm vid-speed-btn" data-speed="1.25" style="padding: 0.2rem 0.5rem; font-size: 0.75rem;">1.25x</button>
+          </div>
+        </div>
+        <p id="video-modal-desc" style="color: var(--text-secondary); font-size: 0.88rem; margin: 0;">-</p>
+        <div id="video-modal-tip" class="sign-card-tip" style="font-size: 0.82rem;">-</div>
+        <div style="display: flex; justify-content: flex-end; margin-top: 0.5rem;">
+          <button id="btn-video-modal-practice" class="btn btn-primary btn-sm">
+            <i class="fa-solid fa-bullseye"></i> Practice In Camera
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Practice Challenge Modal (Dual Split Layout with Video Demonstration) -->
+  <div id="practice-modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(14px); z-index: 10000; align-items: center; justify-content: center;">
+    <div style="background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); width: 92%; max-width: 720px; padding: 1.75rem; display: flex; flex-direction: column; gap: 1rem; box-shadow: var(--shadow-md);">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <h2 style="font-family: var(--font-display); font-size: 1.3rem;">Practice Challenge: <span id="modal-sign-name" style="color: var(--accent-emerald);">-</span></h2>
         <button id="btn-close-modal" class="btn btn-outline btn-sm" style="padding: 0.3rem 0.6rem;"><i class="fa-solid fa-xmark"></i></button>
       </div>
-      <p id="modal-sign-desc" style="color: var(--text-secondary); font-size: 0.9rem;">-</p>
-      <div id="modal-tip-box" class="sign-card-tip">-</div>
-      
-      <div style="background: rgba(0,0,0,0.4); border-radius: var(--radius-md); padding: 1.5rem; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 0.75rem;">
-        <span style="font-size: 0.85rem; color: var(--text-muted);">Perform this gesture in front of the camera</span>
-        <div id="modal-match-status" style="font-size: 1.8rem; font-weight: 800; color: var(--accent-amber);">Waiting for Pose...</div>
+
+      <!-- Split Layout: Reference Demonstration & Camera Match Instructions -->
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; align-items: stretch;">
+        <!-- Left: Reference Video or Image -->
+        <div style="background: rgba(0,0,0,0.5); border-radius: var(--radius-md); overflow: hidden; position: relative; border: 1px solid var(--border-subtle); display: flex; align-items: center; justify-content: center; min-height: 220px;">
+          <video id="practice-ref-video" playsinline autoplay loop muted style="width: 100%; height: 100%; object-fit: contain; max-height: 240px; display: none;"></video>
+          <img id="practice-ref-img" src="" alt="Reference" style="width: 100%; height: 100%; object-fit: contain; max-height: 240px; display: none;">
+          <span style="position: absolute; bottom: 8px; left: 8px; background: rgba(0,0,0,0.75); font-size: 0.72rem; padding: 2px 8px; border-radius: 4px; color: var(--accent-emerald-light); font-weight: 700;">
+            <i class="fa-solid fa-eye"></i> Reference Gesture
+          </span>
+        </div>
+
+        <!-- Right: Status, Tips, and Live Match -->
+        <div style="display: flex; flex-direction: column; justify-content: space-between; gap: 0.75rem;">
+          <div>
+            <p id="modal-sign-desc" style="color: var(--text-secondary); font-size: 0.85rem; margin: 0 0 0.5rem 0;">-</p>
+            <div id="modal-tip-box" class="sign-card-tip" style="font-size: 0.82rem;">-</div>
+          </div>
+
+          <div style="background: rgba(0,0,0,0.45); border-radius: var(--radius-md); padding: 1.25rem 1rem; text-align: center; border: 1px solid var(--border-subtle);">
+            <span style="font-size: 0.78rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700; letter-spacing: 0.5px;">Live Webcam Match</span>
+            <div id="modal-match-status" style="font-size: 1.35rem; font-weight: 800; color: var(--accent-amber); margin-top: 0.35rem;">Waiting for Pose...</div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 
   <!-- JavaScript Modules -->
-  <script src="/static/js/app.js"></script>
+  <script src="/static/js/app.js?v=1.8"></script>
 </body>
 </html>

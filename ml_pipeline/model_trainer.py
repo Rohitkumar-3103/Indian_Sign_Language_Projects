@@ -13,8 +13,16 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.neural_network import MLPClassifier
-from sklearn.metrics import accuracy_score, precision_recall_fscore_support, confusion_matrix, classification_report
-from ml_pipeline.isl_dictionary import ISL_CLASSES
+from sklearn.metrics import (
+    accuracy_score,
+    precision_recall_fscore_support,
+    confusion_matrix,
+    classification_report
+)
+try:
+    from ml_pipeline.isl_dictionary import ISL_CLASSES
+except ImportError:
+    from isl_dictionary import ISL_CLASSES
 
 def train_isl_model(
     csv_path="data/isl_landmarks.csv",

@@ -11,8 +11,10 @@ import os
 import cv2
 import csv
 import numpy as np
-import mediapipe as mp
-from ml_pipeline.feature_extractor import ISLFeatureExtractor, build_feature_vector
+try:
+    from ml_pipeline.feature_extractor import ISLFeatureExtractor, build_feature_vector
+except ImportError:
+    from feature_extractor import ISLFeatureExtractor, build_feature_vector
 
 def process_uploaded_images(
     images_dir="Images",
