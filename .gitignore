@@ -40,3 +40,14 @@ thesis_template_0.1/*.lot
 thesis_template_0.1/*.synctex.gz
 thesis_template_0.1/Chapters/*.aux
 thesis_template_0.1/Appendices/*.aux
+
+# Presentations & Project Reports
+*.pptx
+*.ppt
+*PROJECT_REPORT*.md
+*COMPREHENSIVE_REPORT*.md
+RESEARCH_PAPERS_COMPREHENSIVE_SURVEY_REPORT.md
+THESIS_PROJECT_REPORT.md
+THESIS_COMPREHENSIVE_REPORT.md
+ISL_Project_Presentation.pptx
+
