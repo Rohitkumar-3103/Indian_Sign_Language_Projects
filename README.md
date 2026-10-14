@@ -81,7 +81,6 @@ Indian_Sign_Language_Projects/
 ├── run.bat                            # Windows 1-click startup launcher
 ├── requirements.txt                   # Core Python dependencies (Flask, OpenCV, MediaPipe, etc.)
 ├── .env.example                       # Environment template (DEEPGRAM_API_KEY, Flask configs)
-├── .gitignore                         # Git ignore configuration (excluding private reports/PPTs)
 ├── Indian_Sign_Language_Pipeline.ipynb# Interactive ML pipeline notebook (data prep, training, metrics)
 ├── Indian_Sign_Language_Pipeline.html # HTML export of research & pipeline experiments
 ├── ml_pipeline/                       # Machine Learning & Gesture Processing Subsystem
