@@ -77,40 +77,54 @@ Unlike American Sign Language (ASL) which is largely single-handed, **Indian Sig
 
 ```
 Indian_Sign_Language_Projects/
-├── app.py                             # Unified Flask Web Server & REST Backend APIs
-├── run.bat                            # Windows 1-click launcher
-├── requirements.txt                   # Python dependencies (Flask, OpenCV, MediaPipe, yt-dlp, requests)
-├── ml_pipeline/
-│   ├── feature_extractor.py           # MediaPipe 3D Landmark Extractor & Normalizer
-│   ├── isl_dictionary.py              # ISL Gesture Definitions, Categories, Descriptions & Tips
-│   ├── model_trainer.py               # Random Forest / MLP Trainer & Metrics Evaluator
-│   └── dataset_collector.py           # CLI OpenCV interactive webcam dataset recorder
+├── app.py                             # Unified Flask Web Server, REST APIs & Live Detection Engine
+├── run.bat                            # Windows 1-click startup launcher
+├── requirements.txt                   # Core Python dependencies (Flask, OpenCV, MediaPipe, etc.)
+├── .env.example                       # Environment template (DEEPGRAM_API_KEY, Flask configs)
+├── .gitignore                         # Git ignore configuration (excluding private reports/PPTs)
+├── Indian_Sign_Language_Pipeline.ipynb# Interactive ML pipeline notebook (data prep, training, metrics)
+├── Indian_Sign_Language_Pipeline.html # HTML export of research & pipeline experiments
+├── ml_pipeline/                       # Machine Learning & Gesture Processing Subsystem
+│   ├── feature_extractor.py           # MediaPipe 3D Landmark Extractor & Normalizer (156-dim)
+│   ├── isl_dictionary.py              # ISL Gesture Definitions, Categories & Anatomical Tips
+│   ├── model_trainer.py               # Random Forest / Classifier Trainer & Performance Evaluator
+│   ├── dataset_collector.py           # CLI OpenCV interactive webcam dataset recorder
+│   ├── build_isl_dictionary.py        # Master ISL vocabulary compiler & mapping generator
+│   ├── extract_dataset_images.py      # Landmark extraction engine for multi-class image datasets
+│   ├── extract_research_paper_assets.py# Automated PDF figure & table extraction engine
+│   ├── extract_uploaded_images.py     # Custom gesture & reference image ingestion
+│   ├── extract_video_thumbnails.py    # Thumbnail extraction generator for gesture video library
+│   ├── render_mediapipe_landmarks.py  # Dual-color 3D skeletal landmark visualizer
+│   └── synthetic_bootstrap.py         # Synthetic sample bootstrapping & variance augmentation
 ├── data/
 │   └── isl_landmarks.csv              # Extracted 156-dim feature dataset (7,352+ samples)
 ├── models/
-│   ├── isl_classifier.pkl             # Trained Random Forest ensemble model
-│   ├── label_encoder.pkl              # Scikit-learn LabelEncoder
-│   ├── isl_classes.json               # Class metadata & index mapping
-│   └── model_metrics.json             # Validation accuracy, precision, recall & F1
+│   ├── isl_classifier.pkl             # Trained Random Forest ensemble model (85.2% accuracy)
+│   ├── label_encoder.pkl              # Scikit-learn LabelEncoder instance
+│   ├── isl_classes.json               # Class labels & category index mappings (45 classes)
+│   └── model_metrics.json             # Stratified validation accuracy, precision, recall & F1
 ├── Images/
-│   └── isl_videos/                    # 203 full-length MP4 gesture video demonstrations
+│   ├── 0-9/                           # Reference hand gesture images for digits (0-9)
+│   ├── A-Z/                           # Reference hand gesture images for alphabets (A-Z)
+│   └── isl_videos/                    # 203 full-length MP4 human gesture demonstrations
 ├── static/
-│   ├── css/style.css                  # Glassmorphic dark-mode CSS design system
-│   ├── js/app.js                      # Live webcam detection, YouTube sync, speech synthesis
-│   ├── assets/signs/                  # 168+ whole-word sign images
+│   ├── css/style.css                  # Modern Glassmorphic dark-mode CSS design system
+│   ├── js/
+│   │   ├── app.js                     # Frontend controller (camera detection, TTS, YouTube sync)
+│   │   └── marked.min.js              # Fast client-side markdown parser
+│   ├── assets/signs/                  # 168+ whole-word ISL sign reference images
 │   └── signs/                         # Alphabet fingerspelling cards (A-Z)
 ├── templates/
 │   ├── index.html                     # Flagship 7-tab Single Page Application
-│   └── research_report.html           # Full 18-paper survey report viewer
+│   └── research_report.html           # Full 18-paper survey & comparative analytics dashboard
 ├── Research_Papers/                   # 18 peer-reviewed research papers (PDF)
 ├── Research_Paper_images/             # 189 extracted research figures & interactive gallery
 │   ├── index.html                     # Visual Research Asset Gallery viewer
 │   ├── catalog.json                   # Machine-readable figure catalog
 │   └── CATALOG.md                     # Markdown catalog of all 189 figures
-├── thesis_template_0.1/               # LaTeX Thesis template updated to 18 papers
-│   ├── example.bib                    # BibTeX entries including khakha2026realtime
-│   └── Chapters/2_literature.tex      # Comprehensive Literature Review chapter
-└── isl-translator-main/               # React + Express YouTube translator subproject
+└── isl-translator-main/
+    └── backend/
+        └── .env.example               # Backend environment sample for YouTube translation service
 ```
 
 ---
