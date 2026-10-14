@@ -104,8 +104,8 @@
       background: linear-gradient(135deg, rgba(15, 23, 42, 0.9), rgba(24, 32, 56, 0.85));
       border: 1px solid rgba(16, 185, 129, 0.25);
       border-radius: var(--radius-lg);
-      padding: 2.5rem 2.25rem;
-      margin-bottom: 2.5rem;
+      padding: 2rem 2.25rem;
+      margin-bottom: 1.5rem;
       box-shadow: var(--shadow-md);
       position: relative;
       overflow: hidden;
@@ -179,8 +179,8 @@
       background: var(--bg-card);
       border: 1px solid var(--border-subtle);
       border-radius: var(--radius-md);
-      padding: 1.25rem 1.75rem;
-      margin-bottom: 2.5rem;
+      padding: 1rem 1.5rem;
+      margin-bottom: 1.5rem;
     }
 
     .report-toc-title {
@@ -225,7 +225,7 @@
       -webkit-backdrop-filter: blur(16px);
       border: 1px solid var(--border-subtle);
       border-radius: var(--radius-lg);
-      padding: 2.75rem 2.5rem;
+      padding: 2.5rem 3rem;
       box-shadow: var(--shadow-sm);
     }
 
@@ -234,8 +234,8 @@
       font-size: 1.85rem;
       font-weight: 800;
       color: #fff;
-      margin: 2.2rem 0 1rem;
-      padding-bottom: 0.6rem;
+      margin: 1.5rem 0 0.75rem;
+      padding-bottom: 0.5rem;
       border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     }
 
@@ -245,12 +245,20 @@
 
     .report-content h2 {
       font-family: var(--font-display);
-      font-size: 1.45rem;
+      font-size: 1.35rem;
       font-weight: 700;
       color: var(--accent-emerald-light);
-      margin: 2.5rem 0 1rem;
+      margin: 1.6rem 0 0.75rem;
       padding-left: 0.75rem;
       border-left: 4px solid var(--accent-emerald);
+    }
+
+    .report-content h1 + h2 {
+      margin-top: 0.85rem;
+    }
+
+    .report-content hr + h2 {
+      margin-top: 1rem;
     }
 
     .report-content h3 {
@@ -258,30 +266,32 @@
       font-size: 1.15rem;
       font-weight: 700;
       color: var(--accent-cyan-light);
-      margin: 1.75rem 0 0.75rem;
+      margin: 1.35rem 0 0.6rem;
     }
 
     .report-content h4 {
       font-size: 1rem;
       font-weight: 600;
       color: var(--text-primary);
-      margin: 1.25rem 0 0.5rem;
+      margin: 1rem 0 0.4rem;
     }
 
     .report-content p {
-      margin-bottom: 1.15rem;
+      margin-bottom: 1.05rem;
       color: #cbd5e1;
       font-size: 0.95rem;
+      line-height: 1.75;
     }
 
     .report-content ul, .report-content ol {
-      margin: 0.75rem 0 1.25rem 1.5rem;
+      margin: 0.75rem 0 1.25rem 1.75rem;
       color: #cbd5e1;
       font-size: 0.95rem;
+      line-height: 1.75;
     }
 
     .report-content li {
-      margin-bottom: 0.45rem;
+      margin-bottom: 0.55rem;
     }
 
     .report-content strong {
@@ -298,17 +308,18 @@
       border: none;
       height: 1px;
       background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), transparent);
-      margin: 2.5rem 0;
+      margin: 1.25rem 0;
     }
 
     .report-content blockquote {
       background: rgba(16, 185, 129, 0.08);
       border-left: 4px solid var(--accent-emerald);
       border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
-      padding: 1rem 1.25rem;
-      margin: 1.5rem 0;
+      padding: 1.15rem 1.45rem;
+      margin: 1.4rem 0;
       color: #e2e8f0;
       font-style: italic;
+      line-height: 1.7;
     }
 
     .report-content code {
@@ -322,12 +333,13 @@
     }
 
     .report-content pre {
-      background: rgba(0, 0, 0, 0.5);
+      background: rgba(0, 0, 0, 0.55);
       border: 1px solid var(--border-subtle);
       border-radius: var(--radius-md);
-      padding: 1.25rem;
+      padding: 1.75rem 2rem;
       overflow-x: auto;
-      margin: 1.25rem 0;
+      margin: 1.5rem 0;
+      line-height: 1.65;
     }
 
     .report-content pre code {
@@ -336,6 +348,20 @@
       border: none;
       color: #f1f5f9;
       font-size: 0.88rem;
+    }
+
+    /* Embedded Extracted Paper Figures */
+    .report-content img {
+      max-width: 100%;
+      height: auto;
+      display: block;
+      margin: 1.5rem auto;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-subtle);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+      background: rgba(15, 23, 42, 0.6);
+      padding: 0.5rem;
+      box-sizing: border-box;
     }
 
     /* Markdown Table Styling */
@@ -390,6 +416,19 @@
     .report-content a:hover {
       color: #fff;
       border-bottom-style: solid;
+    }
+
+    /* Responsive Breakpoints */
+    @media (max-width: 768px) {
+      .report-wrapper {
+        padding: 1.5rem 1rem 3rem;
+      }
+      .report-content {
+        padding: 1.5rem 1.25rem;
+      }
+      .report-content pre {
+        padding: 1.25rem 1rem;
+      }
     }
 
     /* Floating Back-to-Top Button */

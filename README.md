@@ -54,6 +54,8 @@ Designed and synthesized directly based on the research papers located in the re
 
 ## 📐 Architecture & Feature Extraction
 
+![ISL Vision System Architecture](Images/system_architecture.png)
+
 Unlike American Sign Language (ASL) which is largely single-handed, **Indian Sign Language (ISL) is predominantly two-handed** (e.g. A, B, D, E, F, G, H, M, N, P, Q, R, S, T, W, X, Y, Z, vowels where the right index touches left fingertips).
 
 ### 156-Dimensional Invariant Feature Layout:

@@ -1,0 +1,252 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Masters/Doctoral Thesis 
+% LaTeX Template for IIIT Allahabad Students
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%----------------------------------------------------------------------------------------
+%	PACKAGES AND OTHER DOCUMENT CONFIGURATIONS
+%----------------------------------------------------------------------------------------
+
+\documentclass[
+12pt, % The default document font size, options: 10pt, 11pt, 12pt
+oneside, % Two side (alternating margins) for binding by default, uncomment to switch to one side
+english, % ngerman for German
+singlespacing, % options: singlespacing, onehalfspacing or doublespacing
+liststotoc, % Uncomment to add the list of figures/tables/etc to the table of contents
+parskip, % Uncomment to add space between paragraphs
+headsepline, % Uncomment to get a line under the header
+]{Thesis} % The class file specifying the document structure
+
+\usepackage[utf8]{inputenc} % Required for inputting international characters
+\usepackage[T1]{fontenc} % Output font encoding for international characters
+\usepackage{mathpazo} % Use the Palatino font by default
+\usepackage[backend=biber,
+style=numeric,
+bibencoding=utf8,
+sorting=none
+]{biblatex}
+\addbibresource{example.bib} % The filename of the bibliography
+\usepackage[autostyle=true]{csquotes} % Required to generate language-dependent quotes in the bibliography
+\usepackage{array}% http://ctan.org/pkg/array
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs,longtable,float}
+\usepackage{caption,subcaption}
+\usepackage{listings}
+\usepackage{xcolor}
+
+% Setup listings
+\lstset{
+    basicstyle=\ttfamily\small,
+    breaklines=true,
+    frame=single,
+    numbers=left,
+    numberstyle=\tiny,
+    showstringspaces=false,
+    keywordstyle=\color{blue},
+    commentstyle=\color{gray}
+}
+
+\lstdefinelanguage{JavaScript}{
+  keywords={typeof, new, true, false, catch, function, return, null, catch, switch, var, if, in, while, do, else, case, break, const, let, async, await, try, throw, Error},
+  ndkeywords={class, export, boolean, throw, implements, import, this},
+  sensitive=false,
+  comment=[l]{//},
+  morecomment=[s]{/*}{*/},
+  morestring=[b]',
+  morestring=[b]"
+}
+
+% Missing figures display placeholders so the document still compiles safely.
+\newcommand{\thesisfigure}[4][0.92\textwidth]{%
+\begin{figure}[htbp]\centering
+\IfFileExists{#2}{\includegraphics[width=#1]{#2}}{\fbox{\parbox[c][3.5cm][c]{0.82\textwidth}{\centering Figure not found: \texttt{\detokenize{#2}}\\Add the image to the project folder.}}}
+\caption{#3}\label{#4}\end{figure}}
+
+%----------------------------------------------------------------------------------------
+%	MARGIN SETTINGS
+%----------------------------------------------------------------------------------------
+
+\geometry{
+	paper=a4paper, % Change to letterpaper for US letter
+	inner=20mm, % Inner margin
+	outer=20mm, % Outer margin
+	bindingoffset=5mm, % Binding offset
+	top=25mm, % Top margin
+	bottom=20mm, % Bottom margin
+}
+
+%----------------------------------------------------------------------------------------
+%	★★★ PROJECT INFORMATION ★★★
+%----------------------------------------------------------------------------------------
+
+% ============================================================
+% THESIS DETAILS
+% ============================================================
+\thesistitle{Real-Time Indian Sign Language Recognition and Bidirectional Translation System}
+\degree{Bachelor of Technology}  % Options: Bachelor of Technology, Master of Technology, Doctor of Philosophy
+
+% ============================================================
+% SUPERVISOR DETAILS
+% ============================================================
+\supervisor{Prof. Satish Kumar Singh}
+
+% ============================================================
+% STUDENT 1 DETAILS (Required - single author)
+% ============================================================
+\newcommand{\studentonename}{Rohit Kumar Gupta}
+\newcommand{\studentoneroll}{IIT2023185}
+
+% ============================================================
+% STUDENT 2 DETAILS
+% ============================================================
+\newcommand{\studenttwoname}{Krishna Singh}
+\newcommand{\studenttworoll}{IIT2023145}
+
+% ============================================================
+% STUDENT 3 DETAILS (Commented out)
+% ============================================================
+% \newcommand{\studentthreename}{Third Student Name}
+% \newcommand{\studentthreeroll}{IIT2021003}
+
+% ============================================================
+% DEPARTMENT & UNIVERSITY
+% ============================================================
+\department{Department of Information Technology}
+\university{Indian Institute of Information Technology, Allahabad}
+\subject{Information Technology}
+
+% ============================================================
+% HELPER COMMANDS
+% ============================================================
+
+\newcommand{\studentnamesformatted}{%
+\studentonename%
+\ifdefined\studenttwoname%
+\\\studenttwoname%
+\fi%
+\ifdefined\studentthreename%
+\\\studentthreename%
+\fi%
+}
+
+\newcommand{\rollnumbersformatted}{%
+\studentoneroll%
+\ifdefined\studenttworoll%
+\\\studenttworoll%
+\fi%
+\ifdefined\studentthreeroll%
+\\\studentthreeroll%
+\fi%
+}
+
+\newcommand{\studentnamescomma}{%
+\studentonename%
+\ifdefined\studenttwoname%
+, \studenttwoname%
+\fi%
+\ifdefined\studentthreename%
+, \studentthreename%
+\fi%
+}
+
+\newcommand{\studentnamesdeclaration}{%
+\studentonename{} (\studentoneroll)%
+\ifdefined\studenttwoname%
+, \studenttwoname{} (\studenttworoll)%
+\fi%
+\ifdefined\studentthreename%
+, and \studentthreename{} (\studentthreeroll)%
+\fi%
+}
+
+\newcommand{\studentsignatures}{%
+\studentonename{} (\studentoneroll)%
+\ifdefined\studenttwoname%
+\\\studenttwoname{} (\studenttworoll)%
+\fi%
+\ifdefined\studentthreename%
+\\\studentthreename{} (\studentthreeroll)%
+\fi%
+}
+
+\newcommand{\pronounwe}{%
+\ifdefined\studenttwoname%
+We%
+\else%
+I%
+\fi%
+}
+
+\newcommand{\pronounour}{%
+\ifdefined\studenttwoname%
+our%
+\else%
+my%
+\fi%
+}
+
+\newcommand{\pronounme}{%
+\ifdefined\studenttwoname%
+us%
+\else%
+me%
+\fi%
+}
+
+\firstauthor{\studentnamesformatted}
+\enrollmentnumber{\rollnumbersformatted}
+
+\examiner{} 
+\addresses{} 
+\keywords{Indian Sign Language, MediaPipe Hands, 3D Skeletal Landmarks, Bimanual Gestures, Random Forest, Temporal Hysteresis, Deepgram Nova-2, Multimodal Translation} 
+\faculty{Prof. Satish Kumar Singh}
+
+\AtBeginDocument{
+\hypersetup{pdftitle=\ttitle}
+\hypersetup{pdfkeywords=\keywordnames}
+\hypersetup{linkcolor=blue,citecolor=blue,urlcolor=blue}
+}
+
+\begin{document}
+\begin{sloppypar}
+
+%----------------------------------------------------------------------------------------
+%	FRONT CONTENT
+%----------------------------------------------------------------------------------------
+
+\include{frontmatter}
+
+%----------------------------------------------------------------------------------------
+%	THESIS CONTENT - CHAPTERS
+%----------------------------------------------------------------------------------------
+
+\mainmatter % Begin numeric (1,2,3...) page numbering
+
+\pagestyle{thesis} % Return the page headers back to the "thesis" style
+\begin{spacing}{1.5}
+
+\include{Chapters/1_introduction}
+\include{Chapters/2_literature}
+\include{Chapters/3_methods}
+\include{Chapters/4_implementation}
+\include{Chapters/5_results}
+\include{Chapters/6_conclusion}
+
+\end{spacing}
+
+%----------------------------------------------------------------------------------------
+%	THESIS CONTENT - APPENDICES
+%----------------------------------------------------------------------------------------
+
+\appendix
+
+\include{Appendices/AppendixA}
+
+%----------------------------------------------------------------------------------------
+%	BIBLIOGRAPHY
+%----------------------------------------------------------------------------------------
+
+\printbibliography[heading=bibintoc]
+
+\end{sloppypar}
+\end{document}

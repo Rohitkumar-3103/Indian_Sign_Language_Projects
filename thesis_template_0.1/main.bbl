@@ -1,0 +1,698 @@
+% $ biblatex auxiliary file $
+% $ biblatex bbl format version 3.3 $
+% Do not modify the above lines!
+%
+% This is an auxiliary file used by the 'biblatex' package.
+% This file may safely be deleted. It will be recreated by
+% biber as required.
+%
+\begingroup
+\makeatletter
+\@ifundefined{ver@biblatex.sty}
+  {\@latex@error
+     {Missing 'biblatex' package}
+     {The bibliography requires the 'biblatex' package.}
+      \aftergroup\endinput}
+  {}
+\endgroup
+
+
+\refsection{0}
+  \datalist[entry]{none/global//global/global/global}
+    \entry{ekbote2017}{inproceedings}{}{}
+      \name{author}{2}{}{%
+        {{hash=03ce2e79f5e15a060cd5ea1ae2818525}{%
+           family={Ekbote},
+           familyi={E\bibinitperiod},
+           given={Juhi},
+           giveni={J\bibinitperiod}}}%
+        {{hash=678f89b9ba87201d60e60da242383f8b}{%
+           family={Joshi},
+           familyi={J\bibinitperiod},
+           given={Mahasweta},
+           giveni={M\bibinitperiod}}}%
+      }
+      \strng{namehash}{bd9eff0e633787069f1182be5ebaf51c}
+      \strng{fullhash}{bd9eff0e633787069f1182be5ebaf51c}
+      \strng{fullhashraw}{bd9eff0e633787069f1182be5ebaf51c}
+      \strng{bibnamehash}{bd9eff0e633787069f1182be5ebaf51c}
+      \strng{authorbibnamehash}{bd9eff0e633787069f1182be5ebaf51c}
+      \strng{authornamehash}{bd9eff0e633787069f1182be5ebaf51c}
+      \strng{authorfullhash}{bd9eff0e633787069f1182be5ebaf51c}
+      \strng{authorfullhashraw}{bd9eff0e633787069f1182be5ebaf51c}
+      \field{sortinit}{1}
+      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{Proceedings of the IEEE International Conference on Innovations in Information Embedded and Communication Systems (ICIIECS)}
+      \field{title}{Indian Sign Language Recognition Using {ANN} and {SVM} Classifiers}
+      \field{year}{2017}
+      \field{pages}{1\bibrangedash 5}
+      \range{pages}{5}
+    \endentry
+    \entry{rokade2018}{article}{}{}
+      \name{author}{2}{}{%
+        {{hash=6ccbccb05a115d1f7f8673e2e5d44a71}{%
+           family={Rokade},
+           familyi={R\bibinitperiod},
+           given={Yogeshwar\bibnamedelima I.},
+           giveni={Y\bibinitperiod\bibinitdelim I\bibinitperiod}}}%
+        {{hash=0cefe5f908f802d9c4555ec2ca30f8ec}{%
+           family={Jadav},
+           familyi={J\bibinitperiod},
+           given={Prashant\bibnamedelima M.},
+           giveni={P\bibinitperiod\bibinitdelim M\bibinitperiod}}}%
+      }
+      \strng{namehash}{b0dbe10c19287193ec9a96ecf42e60be}
+      \strng{fullhash}{b0dbe10c19287193ec9a96ecf42e60be}
+      \strng{fullhashraw}{b0dbe10c19287193ec9a96ecf42e60be}
+      \strng{bibnamehash}{b0dbe10c19287193ec9a96ecf42e60be}
+      \strng{authorbibnamehash}{b0dbe10c19287193ec9a96ecf42e60be}
+      \strng{authornamehash}{b0dbe10c19287193ec9a96ecf42e60be}
+      \strng{authorfullhash}{b0dbe10c19287193ec9a96ecf42e60be}
+      \strng{authorfullhashraw}{b0dbe10c19287193ec9a96ecf42e60be}
+      \field{sortinit}{2}
+      \field{sortinithash}{8b555b3791beccb63322c22f3320aa9a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{International Journal of Computer Engineering and Applications}
+      \field{number}{2}
+      \field{title}{Indian Sign Language Recognition System Using Skin Color Segmentation and {ANN}}
+      \field{volume}{12}
+      \field{year}{2018}
+      \field{pages}{88\bibrangedash 95}
+      \range{pages}{8}
+    \endentry
+    \entry{katoch2022}{article}{}{}
+      \name{author}{3}{}{%
+        {{hash=610cae29b91f9e708081ec5bcc37d8f6}{%
+           family={Katoch},
+           familyi={K\bibinitperiod},
+           given={Shagun},
+           giveni={S\bibinitperiod}}}%
+        {{hash=cc592870af83f48449f0e6d136bb0680}{%
+           family={Singh},
+           familyi={S\bibinitperiod},
+           given={Varsha},
+           giveni={V\bibinitperiod}}}%
+        {{hash=aa379216192b10f09aeb0f9ec1c1400f}{%
+           family={Tiwary},
+           familyi={T\bibinitperiod},
+           given={Uma\bibnamedelima Shanker},
+           giveni={U\bibinitperiod\bibinitdelim S\bibinitperiod}}}%
+      }
+      \strng{namehash}{97ccc553057d77835d522e9540da7966}
+      \strng{fullhash}{97ccc553057d77835d522e9540da7966}
+      \strng{fullhashraw}{97ccc553057d77835d522e9540da7966}
+      \strng{bibnamehash}{97ccc553057d77835d522e9540da7966}
+      \strng{authorbibnamehash}{97ccc553057d77835d522e9540da7966}
+      \strng{authornamehash}{97ccc553057d77835d522e9540da7966}
+      \strng{authorfullhash}{97ccc553057d77835d522e9540da7966}
+      \strng{authorfullhashraw}{97ccc553057d77835d522e9540da7966}
+      \field{sortinit}{3}
+      \field{sortinithash}{ad6fe7482ffbd7b9f99c9e8b5dccd3d7}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Array (Elsevier)}
+      \field{title}{Indian Sign Language Recognition System Using {SURF} with {SVM} and {CNN}}
+      \field{volume}{14}
+      \field{year}{2022}
+      \field{pages}{100141}
+      \range{pages}{1}
+      \verb{doi}
+      \verb 10.1016/j.array.2022.100141
+      \endverb
+    \endentry
+    \entry{vashisth2023}{article}{}{}
+      \name{author}{4}{}{%
+        {{hash=2b94af835e811a90eeaba5ffe44b830f}{%
+           family={Vashisth},
+           familyi={V\bibinitperiod},
+           given={H.\bibnamedelimi K.},
+           giveni={H\bibinitperiod\bibinitdelim K\bibinitperiod}}}%
+        {{hash=aa5ace0ee4c9330f1140f7d97c9c443f}{%
+           family={Tarafder},
+           familyi={T\bibinitperiod},
+           given={T.},
+           giveni={T\bibinitperiod}}}%
+        {{hash=5b86fa6a29e3a3d0d5b1a96ef01d0fde}{%
+           family={Aziz},
+           familyi={A\bibinitperiod},
+           given={R.},
+           giveni={R\bibinitperiod}}}%
+        {{hash=ae36002a25787c5a9c34e72f3781b74f}{%
+           family={Arora},
+           familyi={A\bibinitperiod},
+           given={M.},
+           giveni={M\bibinitperiod}}}%
+      }
+      \strng{namehash}{7f18d7d9b7784e5340de5b19b95d3f5e}
+      \strng{fullhash}{5bd0d0ddd5e6365ebb8517bd49888a99}
+      \strng{fullhashraw}{5bd0d0ddd5e6365ebb8517bd49888a99}
+      \strng{bibnamehash}{7f18d7d9b7784e5340de5b19b95d3f5e}
+      \strng{authorbibnamehash}{7f18d7d9b7784e5340de5b19b95d3f5e}
+      \strng{authornamehash}{7f18d7d9b7784e5340de5b19b95d3f5e}
+      \strng{authorfullhash}{5bd0d0ddd5e6365ebb8517bd49888a99}
+      \strng{authorfullhashraw}{5bd0d0ddd5e6365ebb8517bd49888a99}
+      \field{sortinit}{4}
+      \field{sortinithash}{9381316451d1b9788675a07e972a12a7}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{MDPI Engineering Proceedings}
+      \field{number}{1}
+      \field{title}{Hand Gesture Recognition in Indian Sign Language Using Deep Learning}
+      \field{volume}{59}
+      \field{year}{2023}
+      \field{pages}{96}
+      \range{pages}{1}
+      \verb{doi}
+      \verb 10.3390/engproc2023059096
+      \endverb
+    \endentry
+    \entry{ilakkia2024}{inproceedings}{}{}
+      \true{moreauthor}
+      \true{morelabelname}
+      \name{author}{1}{}{%
+        {{hash=fa60b0cd88343ed1a66f5c71e5c2d8ff}{%
+           family={Ilakkia},
+           familyi={I\bibinitperiod},
+           given={A.},
+           giveni={A\bibinitperiod}}}%
+      }
+      \strng{namehash}{d1142a0ccac856c5bf320520319011e4}
+      \strng{fullhash}{d1142a0ccac856c5bf320520319011e4}
+      \strng{fullhashraw}{d1142a0ccac856c5bf320520319011e4}
+      \strng{bibnamehash}{d1142a0ccac856c5bf320520319011e4}
+      \strng{authorbibnamehash}{d1142a0ccac856c5bf320520319011e4}
+      \strng{authornamehash}{d1142a0ccac856c5bf320520319011e4}
+      \strng{authorfullhash}{d1142a0ccac856c5bf320520319011e4}
+      \strng{authorfullhashraw}{d1142a0ccac856c5bf320520319011e4}
+      \field{sortinit}{5}
+      \field{sortinithash}{20e9b4b0b173788c5dace24730f47d8c}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{Proceedings of the IEEE International Conference on Emerging Research in Computational Science (ICERCS)}
+      \field{title}{{Sign Comm}: A Real-Time Indian Sign Language Recognition System Using Deep Learning for Inclusive Communication}
+      \field{year}{2024}
+      \field{pages}{145\bibrangedash 152}
+      \range{pages}{8}
+    \endentry
+    \entry{singhal2023}{inproceedings}{}{}
+      \name{author}{3}{}{%
+        {{hash=096b4c5f149ae1ae1557d8419f5a3abf}{%
+           family={Singhal},
+           familyi={S\bibinitperiod},
+           given={Rajat},
+           giveni={R\bibinitperiod}}}%
+        {{hash=f2063249dbc1b506f2660e41e7aa79dd}{%
+           family={Gupta},
+           familyi={G\bibinitperiod},
+           given={Jatin},
+           giveni={J\bibinitperiod}}}%
+        {{hash=580baafab19e0b42d1a0d668fc12920b}{%
+           family={Sharma},
+           familyi={S\bibinitperiod},
+           given={Akhil},
+           giveni={A\bibinitperiod}}}%
+      }
+      \strng{namehash}{31aacf1af9f073d6b83c73fd61415150}
+      \strng{fullhash}{31aacf1af9f073d6b83c73fd61415150}
+      \strng{fullhashraw}{31aacf1af9f073d6b83c73fd61415150}
+      \strng{bibnamehash}{31aacf1af9f073d6b83c73fd61415150}
+      \strng{authorbibnamehash}{31aacf1af9f073d6b83c73fd61415150}
+      \strng{authornamehash}{31aacf1af9f073d6b83c73fd61415150}
+      \strng{authorfullhash}{31aacf1af9f073d6b83c73fd61415150}
+      \strng{authorfullhashraw}{31aacf1af9f073d6b83c73fd61415150}
+      \field{sortinit}{6}
+      \field{sortinithash}{b33bc299efb3c36abec520a4c896a66d}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{Proceedings of the IEEE International Conference on Computational Intelligence and Communication Networks}
+      \field{title}{Indian Sign Language Detection for Real-Time Translation Using Machine Learning}
+      \field{year}{2023}
+      \field{pages}{112\bibrangedash 118}
+      \range{pages}{7}
+    \endentry
+    \entry{mishra2025}{article}{}{}
+      \name{author}{5}{}{%
+        {{hash=d0966ffb2bef73b8e95cfbc081356d4d}{%
+           family={Mishra},
+           familyi={M\bibinitperiod},
+           given={Rohit},
+           giveni={R\bibinitperiod}}}%
+        {{hash=17f9485585ab5edd9e12de892e20836c}{%
+           family={Angne},
+           familyi={A\bibinitperiod},
+           given={G.},
+           giveni={G\bibinitperiod}}}%
+        {{hash=938d99a78a8f2bcb612bcdbff36799ac}{%
+           family={Gawde},
+           familyi={G\bibinitperiod},
+           given={N.},
+           giveni={N\bibinitperiod}}}%
+        {{hash=5aedcdb0eed905e033ee6459cacf1082}{%
+           family={Khamkar},
+           familyi={K\bibinitperiod},
+           given={P.},
+           giveni={P\bibinitperiod}}}%
+        {{hash=a3cf7d117c1f6f2ee1ca82cb9ea916b2}{%
+           family={Utekar},
+           familyi={U\bibinitperiod},
+           given={S.},
+           giveni={S\bibinitperiod}}}%
+      }
+      \strng{namehash}{88730c9285741a9b24dca0aca8998c4c}
+      \strng{fullhash}{26c5af67bc6adfb9088fa2fa105602c4}
+      \strng{fullhashraw}{26c5af67bc6adfb9088fa2fa105602c4}
+      \strng{bibnamehash}{88730c9285741a9b24dca0aca8998c4c}
+      \strng{authorbibnamehash}{88730c9285741a9b24dca0aca8998c4c}
+      \strng{authornamehash}{88730c9285741a9b24dca0aca8998c4c}
+      \strng{authorfullhash}{26c5af67bc6adfb9088fa2fa105602c4}
+      \strng{authorfullhashraw}{26c5af67bc6adfb9088fa2fa105602c4}
+      \field{sortinit}{7}
+      \field{sortinithash}{108d0be1b1bee9773a1173443802c0a3}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Indian Journal of Science and Technology}
+      \field{number}{8}
+      \field{title}{{SignSpeak}: Indian Sign Language Recognition with {ML} Precision}
+      \field{volume}{18}
+      \field{year}{2025}
+      \field{pages}{589\bibrangedash 603}
+      \range{pages}{15}
+    \endentry
+    \entry{awalkar2025}{article}{}{}
+      \name{author}{5}{}{%
+        {{hash=d0b4e15dedafdfa540b64b6b2be681b3}{%
+           family={Awalkar},
+           familyi={A\bibinitperiod},
+           given={Riya},
+           giveni={R\bibinitperiod}}}%
+        {{hash=bb7e7bcf31166bd8c657ad402da217b3}{%
+           family={Sah},
+           familyi={S\bibinitperiod},
+           given={Aditi},
+           giveni={A\bibinitperiod}}}%
+        {{hash=a664ed251a8900728f60d12ee3e95bc7}{%
+           family={Barahate},
+           familyi={B\bibinitperiod},
+           given={Renuka},
+           giveni={R\bibinitperiod}}}%
+        {{hash=a40fcb7803d41d50b97aecac36841d0c}{%
+           family={Kharche},
+           familyi={K\bibinitperiod},
+           given={Yash},
+           giveni={Y\bibinitperiod}}}%
+        {{hash=f0f0f4d2c02cf9ce43db89c9a04e5cde}{%
+           family={Magar},
+           familyi={M\bibinitperiod},
+           given={Ashwini},
+           giveni={A\bibinitperiod}}}%
+      }
+      \strng{namehash}{ea329ab7eb0a5be6247552eb9889679e}
+      \strng{fullhash}{7b9739900ac2381de1d050cd51a483d2}
+      \strng{fullhashraw}{7b9739900ac2381de1d050cd51a483d2}
+      \strng{bibnamehash}{ea329ab7eb0a5be6247552eb9889679e}
+      \strng{authorbibnamehash}{ea329ab7eb0a5be6247552eb9889679e}
+      \strng{authornamehash}{ea329ab7eb0a5be6247552eb9889679e}
+      \strng{authorfullhash}{7b9739900ac2381de1d050cd51a483d2}
+      \strng{authorfullhashraw}{7b9739900ac2381de1d050cd51a483d2}
+      \field{sortinit}{8}
+      \field{sortinithash}{a231b008ebf0ecbe0b4d96dcc159445f}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{International Journal of Innovative Science and Research Technology}
+      \field{number}{3}
+      \field{title}{Silent Expressions: Two-Handed Indian Sign Language Recognition Using {MediaPipe} and Machine Learning}
+      \field{volume}{10}
+      \field{year}{2025}
+      \field{pages}{1024\bibrangedash 1032}
+      \range{pages}{9}
+    \endentry
+    \entry{rawat2024}{article}{}{}
+      \name{author}{4}{}{%
+        {{hash=c5b59b0346ef03cbee971b1c3488059a}{%
+           family={Rawat},
+           familyi={R\bibinitperiod},
+           given={Prachi},
+           giveni={P\bibinitperiod}}}%
+        {{hash=f4441f9b18bf52fcbe8ae00f654464cb}{%
+           family={Kumar},
+           familyi={K\bibinitperiod},
+           given={Papendra},
+           giveni={P\bibinitperiod}}}%
+        {{hash=1ded5de632291d1cbdcd74cdae48426a}{%
+           family={Tamta},
+           familyi={T\bibinitperiod},
+           given={Vivek\bibnamedelima Kumar},
+           giveni={V\bibinitperiod\bibinitdelim K\bibinitperiod}}}%
+        {{hash=d8ffbbb6e33d5bb09037aaecc943c757}{%
+           family={Kumar},
+           familyi={K\bibinitperiod},
+           given={Anuj},
+           giveni={A\bibinitperiod}}}%
+      }
+      \strng{namehash}{288de4320779d5ac6a77af39c7fc8fc1}
+      \strng{fullhash}{1de8e89e0c250a77a5b084e0d03fdbb5}
+      \strng{fullhashraw}{1de8e89e0c250a77a5b084e0d03fdbb5}
+      \strng{bibnamehash}{288de4320779d5ac6a77af39c7fc8fc1}
+      \strng{authorbibnamehash}{288de4320779d5ac6a77af39c7fc8fc1}
+      \strng{authornamehash}{288de4320779d5ac6a77af39c7fc8fc1}
+      \strng{authorfullhash}{1de8e89e0c250a77a5b084e0d03fdbb5}
+      \strng{authorfullhashraw}{1de8e89e0c250a77a5b084e0d03fdbb5}
+      \field{sortinit}{9}
+      \field{sortinithash}{0a5ebc79d83c96b6579069544c73c7d4}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{EAI Endorsed Transactions on AI and Robotics}
+      \field{number}{1}
+      \field{title}{A Comprehensive Approach to Indian Sign Language Recognition Leveraging {LSTM} and {MediaPipe} Holistic}
+      \field{volume}{3}
+      \field{year}{2024}
+      \field{pages}{1\bibrangedash 13}
+      \range{pages}{13}
+    \endentry
+    \entry{tharsan2022}{article}{}{}
+      \name{author}{2}{}{%
+        {{hash=9b8d9e026de6bcd6c5c1efd32f9e81f5}{%
+           family={S.},
+           familyi={S\bibinitperiod},
+           given={Ezhil\bibnamedelima Tharsan},
+           giveni={E\bibinitperiod\bibinitdelim T\bibinitperiod}}}%
+        {{hash=31e8a5ba9751accd763c4aae520970d0}{%
+           family={S.},
+           familyi={S\bibinitperiod},
+           given={Dharshan},
+           giveni={D\bibinitperiod}}}%
+      }
+      \strng{namehash}{c7bbc3a9d76f93424e5727ffd0b9b17b}
+      \strng{fullhash}{c7bbc3a9d76f93424e5727ffd0b9b17b}
+      \strng{fullhashraw}{c7bbc3a9d76f93424e5727ffd0b9b17b}
+      \strng{bibnamehash}{c7bbc3a9d76f93424e5727ffd0b9b17b}
+      \strng{authorbibnamehash}{c7bbc3a9d76f93424e5727ffd0b9b17b}
+      \strng{authornamehash}{c7bbc3a9d76f93424e5727ffd0b9b17b}
+      \strng{authorfullhash}{c7bbc3a9d76f93424e5727ffd0b9b17b}
+      \strng{authorfullhashraw}{c7bbc3a9d76f93424e5727ffd0b9b17b}
+      \field{sortinit}{1}
+      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{International Journal of Computer Applications}
+      \field{number}{21}
+      \field{title}{Real Time Indian Sign Language Detection Using {LSTM} and Keypoint Extraction}
+      \field{volume}{184}
+      \field{year}{2022}
+      \field{pages}{31\bibrangedash 37}
+      \range{pages}{7}
+    \endentry
+    \entry{damdoo2025}{article}{}{}
+      \name{author}{2}{}{%
+        {{hash=f127a4ad1a34e50414298ac0bbec3439}{%
+           family={Damdoo},
+           familyi={D\bibinitperiod},
+           given={Rina},
+           giveni={R\bibinitperiod}}}%
+        {{hash=ac5ce9110ee23fd70d895dc0641d6d97}{%
+           family={Kumar},
+           familyi={K\bibinitperiod},
+           given={Praveen},
+           giveni={P\bibinitperiod}}}%
+      }
+      \strng{namehash}{551a96a9288013050411b1c77ec02a04}
+      \strng{fullhash}{551a96a9288013050411b1c77ec02a04}
+      \strng{fullhashraw}{551a96a9288013050411b1c77ec02a04}
+      \strng{bibnamehash}{551a96a9288013050411b1c77ec02a04}
+      \strng{authorbibnamehash}{551a96a9288013050411b1c77ec02a04}
+      \strng{authornamehash}{551a96a9288013050411b1c77ec02a04}
+      \strng{authorfullhash}{551a96a9288013050411b1c77ec02a04}
+      \strng{authorfullhashraw}{551a96a9288013050411b1c77ec02a04}
+      \field{sortinit}{1}
+      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{IET Image Processing}
+      \field{number}{1}
+      \field{title}{An Integrative Survey on Indian Sign Language Recognition and Translation}
+      \field{volume}{19}
+      \field{year}{2025}
+      \field{pages}{45\bibrangedash 73}
+      \range{pages}{29}
+      \verb{doi}
+      \verb 10.1049/ipr2.13150
+      \endverb
+    \endentry
+    \entry{khakha2026}{article}{}{}
+      \name{author}{4}{}{%
+        {{hash=78721c614c4b11665e4e09c46f54d28d}{%
+           family={Khakha},
+           familyi={K\bibinitperiod},
+           given={Asim\bibnamedelima Yash},
+           giveni={A\bibinitperiod\bibinitdelim Y\bibinitperiod}}}%
+        {{hash=69bae000804d6c88ff26c024bea8e7f5}{%
+           family={Saini},
+           familyi={S\bibinitperiod},
+           given={Neha},
+           giveni={N\bibinitperiod}}}%
+        {{hash=eec29a105ce9ae4468164e3bf001a74f}{%
+           family={Rana},
+           familyi={R\bibinitperiod},
+           given={Meghavi},
+           giveni={M\bibinitperiod}}}%
+        {{hash=9176922153fdf1898dfcf50e142d057d}{%
+           family={Shanbhog},
+           familyi={S\bibinitperiod},
+           given={Manjula},
+           giveni={M\bibinitperiod}}}%
+      }
+      \strng{namehash}{49f956e7a2cf132d6860e38757955c18}
+      \strng{fullhash}{afad965096832fee51667426cdebf7de}
+      \strng{fullhashraw}{afad965096832fee51667426cdebf7de}
+      \strng{bibnamehash}{49f956e7a2cf132d6860e38757955c18}
+      \strng{authorbibnamehash}{49f956e7a2cf132d6860e38757955c18}
+      \strng{authornamehash}{49f956e7a2cf132d6860e38757955c18}
+      \strng{authorfullhash}{afad965096832fee51667426cdebf7de}
+      \strng{authorfullhashraw}{afad965096832fee51667426cdebf7de}
+      \field{sortinit}{1}
+      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{International Journal of Advanced Signal and Image Sciences}
+      \field{number}{5s}
+      \field{title}{Real-Time Sign Language Translator: Leveraging The Art Of Deep Learning}
+      \field{volume}{12}
+      \field{year}{2026}
+      \field{pages}{203\bibrangedash 219}
+      \range{pages}{17}
+    \endentry
+    \entry{sharma2022}{article}{}{}
+      \name{author}{5}{}{%
+        {{hash=8acaa8c7f34a3aa49309e56d6ccb4e7e}{%
+           family={Sharma},
+           familyi={S\bibinitperiod},
+           given={Purushottam},
+           giveni={P\bibinitperiod}}}%
+        {{hash=eead7035e05765ec9cd65e54ad603d9f}{%
+           family={Tulsian},
+           familyi={T\bibinitperiod},
+           given={Devesh},
+           giveni={D\bibinitperiod}}}%
+        {{hash=5d3f0c2b7a0d7b543a6ec01e23111b28}{%
+           family={Verma},
+           familyi={V\bibinitperiod},
+           given={Chaman},
+           giveni={C\bibinitperiod}}}%
+        {{hash=8cc770a26fcd42a490969ffe186373e6}{%
+           family={Sharma},
+           familyi={S\bibinitperiod},
+           given={Pratibha},
+           giveni={P\bibinitperiod}}}%
+        {{hash=60184bf5e23fc82e9aadf05fb070ef56}{%
+           family={Nancy},
+           familyi={N\bibinitperiod},
+           given={Nancy},
+           giveni={N\bibinitperiod}}}%
+      }
+      \strng{namehash}{46c9771159dd730c8f9bde7ce21b1294}
+      \strng{fullhash}{de007cd51afdf73ad4d3f4fd156133c3}
+      \strng{fullhashraw}{de007cd51afdf73ad4d3f4fd156133c3}
+      \strng{bibnamehash}{46c9771159dd730c8f9bde7ce21b1294}
+      \strng{authorbibnamehash}{46c9771159dd730c8f9bde7ce21b1294}
+      \strng{authornamehash}{46c9771159dd730c8f9bde7ce21b1294}
+      \strng{authorfullhash}{de007cd51afdf73ad4d3f4fd156133c3}
+      \strng{authorfullhashraw}{de007cd51afdf73ad4d3f4fd156133c3}
+      \field{sortinit}{1}
+      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{MDPI Future Internet}
+      \field{number}{9}
+      \field{title}{Translating Speech to Indian Sign Language Using Natural Language Processing}
+      \field{volume}{14}
+      \field{year}{2022}
+      \field{pages}{253}
+      \range{pages}{1}
+      \verb{doi}
+      \verb 10.3390/fi14090253
+      \endverb
+    \endentry
+    \entry{singh2022}{article}{}{}
+      \name{author}{2}{}{%
+        {{hash=da26d0e43f2a9119536890830e359389}{%
+           family={Singh},
+           familyi={S\bibinitperiod},
+           given={Arun},
+           giveni={A\bibinitperiod}}}%
+        {{hash=835f61c55ad0c9cab9fcab9e54dd94e5}{%
+           family={Mittal},
+           familyi={M\bibinitperiod},
+           given={Usha},
+           giveni={U\bibinitperiod}}}%
+      }
+      \strng{namehash}{a83c6fd393870d929f1909d8185a274b}
+      \strng{fullhash}{a83c6fd393870d929f1909d8185a274b}
+      \strng{fullhashraw}{a83c6fd393870d929f1909d8185a274b}
+      \strng{bibnamehash}{a83c6fd393870d929f1909d8185a274b}
+      \strng{authorbibnamehash}{a83c6fd393870d929f1909d8185a274b}
+      \strng{authornamehash}{a83c6fd393870d929f1909d8185a274b}
+      \strng{authorfullhash}{a83c6fd393870d929f1909d8185a274b}
+      \strng{authorfullhashraw}{a83c6fd393870d929f1909d8185a274b}
+      \field{sortinit}{2}
+      \field{sortinithash}{8b555b3791beccb63322c22f3320aa9a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{International Journal of Engineering Research \& Technology}
+      \field{number}{6}
+      \field{title}{Indian Sign Language Recognition System for Dynamic Signs Using Optical Flow}
+      \field{volume}{11}
+      \field{year}{2022}
+      \field{pages}{412\bibrangedash 417}
+      \range{pages}{6}
+    \endentry
+    \entry{goyal2023}{report}{}{}
+      \name{author}{2}{}{%
+        {{hash=9764c9d4117ee997d5815ba2ca1131f9}{%
+           family={Goyal},
+           familyi={G\bibinitperiod},
+           given={Kaushal},
+           giveni={K\bibinitperiod}}}%
+        {{hash=ca9c45bdfd8d1e57590dcb7cd8967307}{%
+           family={G.},
+           familyi={G\bibinitperiod},
+           given={Velmathi},
+           giveni={V\bibinitperiod}}}%
+      }
+      \list{institution}{1}{%
+        {School of Electronics Engineering, Vellore Institute of Technology (VIT), Chennai}%
+      }
+      \strng{namehash}{fcb99738576f5ace9a850d8fb4482993}
+      \strng{fullhash}{fcb99738576f5ace9a850d8fb4482993}
+      \strng{fullhashraw}{fcb99738576f5ace9a850d8fb4482993}
+      \strng{bibnamehash}{fcb99738576f5ace9a850d8fb4482993}
+      \strng{authorbibnamehash}{fcb99738576f5ace9a850d8fb4482993}
+      \strng{authornamehash}{fcb99738576f5ace9a850d8fb4482993}
+      \strng{authorfullhash}{fcb99738576f5ace9a850d8fb4482993}
+      \strng{authorfullhashraw}{fcb99738576f5ace9a850d8fb4482993}
+      \field{sortinit}{2}
+      \field{sortinithash}{8b555b3791beccb63322c22f3320aa9a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{Indian Sign Language Recognition Using {MediaPipe} Holistic and Multi-Layer Perceptron}
+      \field{type}{techreport}
+      \field{year}{2023}
+    \endentry
+    \entry{bhanu2025}{article}{}{}
+      \name{author}{1}{}{%
+        {{hash=5828d2841edb4478d081c29c4b37558c}{%
+           family={Bhanu},
+           familyi={B\bibinitperiod},
+           given={P.\bibnamedelimi Yasmin},
+           giveni={P\bibinitperiod\bibinitdelim Y\bibinitperiod}}}%
+      }
+      \strng{namehash}{5828d2841edb4478d081c29c4b37558c}
+      \strng{fullhash}{5828d2841edb4478d081c29c4b37558c}
+      \strng{fullhashraw}{5828d2841edb4478d081c29c4b37558c}
+      \strng{bibnamehash}{5828d2841edb4478d081c29c4b37558c}
+      \strng{authorbibnamehash}{5828d2841edb4478d081c29c4b37558c}
+      \strng{authornamehash}{5828d2841edb4478d081c29c4b37558c}
+      \strng{authorfullhash}{5828d2841edb4478d081c29c4b37558c}
+      \strng{authorfullhashraw}{5828d2841edb4478d081c29c4b37558c}
+      \field{sortinit}{2}
+      \field{sortinithash}{8b555b3791beccb63322c22f3320aa9a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{International Journal of Scientific Development and Research}
+      \field{number}{4}
+      \field{title}{Indian Sign Language to Text/Speech Translation}
+      \field{volume}{10}
+      \field{year}{2025}
+      \field{pages}{301\bibrangedash 305}
+      \range{pages}{5}
+    \endentry
+    \entry{maben2021}{article}{}{}
+      \name{author}{3}{}{%
+        {{hash=12bbdb592037f908534db6c876e8f8d8}{%
+           family={Maben},
+           familyi={M\bibinitperiod},
+           given={Ashwitha\bibnamedelima Anjali},
+           giveni={A\bibinitperiod\bibinitdelim A\bibinitperiod}}}%
+        {{hash=157fa8193cd853fc3ac74cf2fc586750}{%
+           family={Shetty},
+           familyi={S\bibinitperiod},
+           given={Prajna},
+           giveni={P\bibinitperiod}}}%
+        {{hash=cfd38d306450f5a6cc93fd46d0a87072}{%
+           family={Salian},
+           familyi={S\bibinitperiod},
+           given={Mamatha},
+           giveni={M\bibinitperiod}}}%
+      }
+      \strng{namehash}{e5eb438d51dd9e6eaa58b0a31926ae02}
+      \strng{fullhash}{e5eb438d51dd9e6eaa58b0a31926ae02}
+      \strng{fullhashraw}{e5eb438d51dd9e6eaa58b0a31926ae02}
+      \strng{bibnamehash}{e5eb438d51dd9e6eaa58b0a31926ae02}
+      \strng{authorbibnamehash}{e5eb438d51dd9e6eaa58b0a31926ae02}
+      \strng{authornamehash}{e5eb438d51dd9e6eaa58b0a31926ae02}
+      \strng{authorfullhash}{e5eb438d51dd9e6eaa58b0a31926ae02}
+      \strng{authorfullhashraw}{e5eb438d51dd9e6eaa58b0a31926ae02}
+      \field{sortinit}{2}
+      \field{sortinithash}{8b555b3791beccb63322c22f3320aa9a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{International Journal of Scientific Research in Computer Science, Engineering and Information Technology}
+      \field{number}{4}
+      \field{title}{Indian Sign Language Recognition for Emergency Communication}
+      \field{volume}{7}
+      \field{year}{2021}
+      \field{pages}{210\bibrangedash 213}
+      \range{pages}{4}
+    \endentry
+    \entry{ijert2021}{article}{}{}
+      \name{author}{1}{}{%
+        {{hash=3fb6318ba082c0eedf285c76eb25cb59}{%
+           family={{Research Collaboration Group}},
+           familyi={R\bibinitperiod}}}%
+      }
+      \strng{namehash}{3fb6318ba082c0eedf285c76eb25cb59}
+      \strng{fullhash}{3fb6318ba082c0eedf285c76eb25cb59}
+      \strng{fullhashraw}{3fb6318ba082c0eedf285c76eb25cb59}
+      \strng{bibnamehash}{3fb6318ba082c0eedf285c76eb25cb59}
+      \strng{authorbibnamehash}{3fb6318ba082c0eedf285c76eb25cb59}
+      \strng{authornamehash}{3fb6318ba082c0eedf285c76eb25cb59}
+      \strng{authorfullhash}{3fb6318ba082c0eedf285c76eb25cb59}
+      \strng{authorfullhashraw}{3fb6318ba082c0eedf285c76eb25cb59}
+      \field{sortinit}{2}
+      \field{sortinithash}{8b555b3791beccb63322c22f3320aa9a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{International Journal of Engineering Research \& Technology}
+      \field{number}{4}
+      \field{title}{Real-Time Indian Sign Language Detection with Edge Preserving Filters}
+      \field{volume}{15}
+      \field{year}{2021}
+      \field{pages}{833\bibrangedash 840}
+      \range{pages}{8}
+    \endentry
+  \enddatalist
+\endrefsection
+\endinput
+

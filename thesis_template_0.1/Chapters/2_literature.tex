@@ -1,0 +1,92 @@
+% Chapter 2: Literature Survey & Comprehensive Research Review
+
+\chapter{Literature Survey}
+\label{Chapter2}
+
+\section{Evolution of Sign Language Recognition Paradigms}
+Over the past decade, Sign Language Recognition (SLR) research has evolved through four major methodological eras:
+
+\subsection{Era 1 (2015--2018): Handcrafted Descriptors and Color Segmentation}
+Early systems relied on color space thresholding (YCbCr, HSV) to segment skin regions, morphological filtering, and contour boundary extraction. Ekbote and Joshi (2017) \cite{ekbote2017} extracted 24 geometric features per hand (area, perimeter, eccentricity, compactness) and compared Support Vector Machines against Artificial Neural Networks on 32 static ISL signs, reporting 97.10\% accuracy for SVM. Rokade and Jadav (2018) \cite{rokade2018} employed skin color segmentation with Principal Component Analysis (PCA) and a backpropagation ANN for single-handed ISL alphabets, achieving 94.37\% accuracy under controlled lighting. However, these systems degraded severely ($<70\%$ accuracy) under complex backgrounds, skin-tone variations, and fluctuating ambient lighting.
+
+\subsection{Era 2 (2019--2022): Deep CNNs on Raw RGB Pixel Frames}
+With the rise of deep learning, researchers transitioned to Convolutional Neural Networks (CNN) operating directly on raw RGB video frames or cropped bounding boxes. Katoch, Singh, and Tiwary (2022) \cite{katoch2022} at IIIT Allahabad conducted a seminal study comparing Speeded-Up Robust Features (SURF) with Bag-of-Visual-Words and SVM against deep CNN architectures on 35 ISL classes (1--9, A--Z). Their work demonstrated that while deep CNNs achieved 99.64\% training accuracy, SURF + SVM (99.17\%) provided superior scale and rotational invariance. Vashisth et al. (2023) \cite{vashisth2023} evaluated deep CNNs on 42,000 raw frames across 35 classes, achieving 92.83\% test accuracy but highlighting substantial computational overhead and sensitivity to lighting variations. Ilakkia et al. (2024) \cite{ilakkia2024} developed \emph{Sign Comm}, incorporating spatial attention CNNs for real-time inclusive communication (97.0\% accuracy).
+
+\subsection{Era 3 (2022--2025): Skeletal Landmark Regression and Ensembles}
+The advent of real-time coordinate estimation models—most notably Google MediaPipe—transformed sign language processing. By replacing high-dimensional image frames ($640 \times 480 \times 3 = 921,600$ values) with compact 3D joint coordinates, dimensionality was reduced by over 99.9\%, guaranteeing background and illumination invariance.
+
+Singhal, Gupta, and Sharma (2023) \cite{singhal2023} extracted 42 2D coordinates using MediaPipe Hands and compared five classifiers across 35 ISL classes, proving that Random Forest achieved 99.95\% accuracy with inference latency under 15 ms, outperforming KNN (98.52\%) and SVM (97.00\%). Mishra et al. (2025) \cite{mishra2025} introduced \emph{SignSpeak}, utilizing Euclidean landmark distances and Random Forest to achieve 94.5\% accuracy on bimanual alphabets. Awalkar et al. (2025) \cite{awalkar2025} explicitly addressed two-handed ISL signs using dual MediaPipe Hands, attaining 98.2\% accuracy on 23 bimanual classes. For dynamic sequences, Rawat et al. (2024) \cite{rawat2024} utilized 543 MediaPipe Holistic landmarks with sequential LSTMs (96.97\% accuracy), and Tharsan and Dharshan (2022) \cite{tharsan2022} applied stacked LSTMs to 126 keypoints for continuous sentence detection (91.30\%). Damdoo and Kumar (2025) \cite{damdoo2025} published a landmark integrative survey in \emph{IET Image Processing}, establishing that over 65\% of standardized ISL vocabulary is bimanual.
+
+\subsection{Era 4 (2026+): Self-Attention Transformers and Multimodal Interaction}
+Recent research has embraced attention-based architectures to model non-local spatial and temporal dependencies without recurrent sequential bottlenecks. Khakha et al. (2026) \cite{khakha2026} developed a custom 3-layer Self-Attention Transformer on 44,200 balanced MediaPipe landmark vectors across 26 alphabet classes, achieving 97.40\% accuracy and demonstrating that 76.6\% of ISL alphabet gestures are two-handed. Concurrently, multimodal bidirectional translation has gained prominence: Sharma et al. (2022) \cite{sharma2022} formulated an NLP-driven Speech-to-ISL translation system incorporating Stanford syntactic parsing, HMM Part-of-Speech tagging, ISL SOV grammar reordering, and a 1,000+ video synthesis engine with character fingerspelling fallback, verified by 30 deaf participants (Net Promoter Score = 83.3).
+
+\section{Linguistic Considerations: ASL vs. ISL Structural Differences}
+American Sign Language (ASL) and Indian Sign Language (ISL) are historically, grammatically, and articulatory distinct visual languages:
+\begin{itemize}
+\item \textbf{Single-Handed vs. Bimanual Articulation:} ASL fingerspelling is executed almost entirely using a single dominant hand. In contrast, ISL fingerspelling is overwhelmingly two-handed (over 76\% dual-hand usage), requiring contact and relative positioning between both hands.
+\item \textbf{Relative Hand Roles:} In ISL, the dominant hand typically acts as the active articulator while the non-dominant hand serves as a spatial reference base.
+\item \textbf{Grammatical Structure:} ISL employs Subject-Object-Verb (SOV) sentence structure with topic-comment arrangement, whereas spoken English follows Subject-Verb-Object (SVO).
+\end{itemize}
+
+\thesisfigure[0.92\textwidth]{Figures/asl_vs_isl_comparison.jpg}{Anatomical and structural comparison of single-handed ASL fingerspelling versus bimanual ISL coordination with fingertip contact points.}{fig:asl-isl}
+
+\section{MediaPipe Hands Topological Architecture}
+MediaPipe Hands operates via an efficient two-stage perception pipeline:
+\begin{enumerate}
+\item \textbf{Palm Detector (BlazePalm):} A Single Shot MultiBox Detector (SSD) optimized for mobile and real-time execution that identifies palm bounding boxes across the full video frame, orienting the crop relative to hand rotation.
+\item \textbf{Hand Landmark Model:} A deep neural network that regresses 21 3D landmark coordinates inside the cropped palm region.
+\end{enumerate}
+
+\thesisfigure[0.85\textwidth]{Figures/mediapipe_landmarks.png}{MediaPipe Hands 21 three-dimensional skeletal landmark topological map illustrating joint numbering and anatomical connectivity (wrist, CMC, MCP, PIP, DIP, and fingertip hubs).}{fig:mediapipe-landmarks}
+
+As illustrated in Figure~\ref{fig:mediapipe-landmarks}, each hand is represented by 21 joints indexed from 0 to 20:
+\begin{itemize}
+\item \textbf{Wrist Root:} Landmark 0 (anatomical base and local coordinate origin).
+\item \textbf{Thumb:} CMC (1), MCP (2), IP (3), and Tip (4).
+\item \textbf{Index Finger:} MCP (5), PIP (6), DIP (7), and Tip (8).
+\item \textbf{Middle Finger:} MCP (9), PIP (10), DIP (11), and Tip (12).
+\item \textbf{Ring Finger:} MCP (13), PIP (14), DIP (15), and Tip (16).
+\item \textbf{Pinky Finger:} MCP (17), PIP (18), DIP (19), and Tip (20).
+\end{itemize}
+Each joint provides normalized image coordinates $(x_{i}, y_{i}) \in [0, 1]^2$ and a relative depth coordinate $z_{i}$, which estimates distance relative to the wrist.
+
+\section{Master Comparative Synthesis of the 18 Literature Papers}
+Table~\ref{tab:master-literature} provides a systematic comparative synthesis of all 18 research papers in the project's survey, summarizing their architectures, features, vocabularies, top accuracies, and direct relevance to this platform.
+
+\begin{longtable}{p{0.04\textwidth}p{0.22\textwidth}p{0.18\textwidth}p{0.18\textwidth}p{0.10\textwidth}p{0.16\textwidth}}
+\caption{Master comparative synthesis of 18 peer-reviewed research papers on Indian Sign Language recognition and translation.}\label{tab:master-literature}\\
+\toprule
+\# & Paper / Authors & Core Architecture & Features / Inputs & Accuracy & Relevance to Platform\\\midrule
+\endfirsthead
+\toprule
+\# & Paper / Authors & Core Architecture & Features / Inputs & Accuracy & Relevance to Platform\\\midrule
+\endhead
+\bottomrule
+\endfoot
+1 & Rawat et al. (2024) \cite{rawat2024} & MediaPipe Holistic + LSTM & 543 3D Keypoints & 96.97\% & Validates temporal sequence modeling.\\
+2 & Vashisth et al. (2023) \cite{vashisth2023} & Deep CNN & Raw RGB Frames & 92.83\% & Confirms raw pixel sensitivity to lighting.\\
+3 & Damdoo \& Kumar (2025) \cite{damdoo2025} & Integrative Survey & Taxonomy (100+ papers) & Survey & Establishes bimanual mandate ($>65\%$).\\
+4 & Katoch et al. (2022) \cite{katoch2022} & SURF + SVM vs CNN & Invariant Descriptors & 99.17\% (SVM) & IIIT Allahabad study on invariant features.\\
+5 & Singhal et al. (2023) \cite{singhal2023} & MediaPipe + Random Forest & 42 Coordinates & 99.95\% & Validates Random Forest as optimal ML.\\
+6 & Rokade \& Jadav (2018) \cite{rokade2018} & YCbCr Skin + PCA + ANN & Hand Contours & 94.37\% & Illustrates flaws of skin-color thresholding.\\
+7 & Singh \& Mittal (2022) \cite{singh2022} & Optical Flow + LSTM & Motion History Images & 97.23\% & Guides temporal hold confirmation.\\
+8 & Goyal \& Velmathi (2023) \cite{goyal2023} & MediaPipe Holistic + MLP & 543 Coordinates & 90.00\% & Supports dual-hand and body spatial cues.\\
+9 & Bhanu (2025) \cite{bhanu2025} & Keypoints + CNN + TTS & Hand Keypoints & 93.67\% & Validates text-to-speech audio feedback.\\
+10 & Ekbote \& Joshi (2017) \cite{ekbote2017} & Otsu + Descriptors + SVM & 24 Geometric Metrics & 97.10\% & Proves SVM strength on geometric features.\\
+11 & Tharsan \& Dharshan (2022) \cite{tharsan2022} & MediaPipe + Stacked LSTM & 126 Keypoints & 91.30\% & Informs sentence building accumulator.\\
+12 & Mishra et al. (2025) \cite{mishra2025} & MediaPipe + Random Forest & Euclidean Distances & 94.50\% & Corroborates our Random Forest benchmarks.\\
+13 & Ilakkia et al. (2024) \cite{ilakkia2024} & Deep CNN + Spatial Attention & Bounding Boxes & 97.00\% & Inspires dual-mode communication UI.\\
+14 & Awalkar et al. (2025) \cite{awalkar2025} & Dual MediaPipe + RF & 42 Inter-Hand Points & 98.20\% & Core proof for two-handed feature vectors.\\
+15 & Maben et al. (2021) \cite{maben2021} & Contours + KNN & Aspect Ratio Profiles & Qualitative & Guides accessibility and HUD layout.\\
+16 & IJERT Team (2021) \cite{ijert2021} & Video Buffer + Edge CNN & Edge Video Frames & 90.20\% & Informs frame rate and stream stabilization.\\
+17 & Sharma et al. (2022) \cite{sharma2022} & NLP + HMM POS + Video & Lemmatization, Grammar & NPS = 83.3 & Reverse Voice-to-Sign \& fallback design.\\
+18 & Khakha et al. (2026) \cite{khakha2026} & Self-Attention Transformer & 42 Padded Keypoints & 97.40\% & Confirms 76.6\% bimanual sign prevalence.\\
+\end{longtable}
+
+\section{Research Gaps Addressed by This Project}
+Despite recent progress, existing research suffers from critical gaps:
+\begin{enumerate}
+\item \textbf{Unidirectional Focus:} Most studies focus exclusively on sign-to-text recognition, neglecting reverse communication from hearing users to deaf signers.
+\item \textbf{Single-Hand Bias:} Over half of published datasets evaluate only single-handed ASL-style gestures, failing on standard ISL bimanual forms.
+\item \textbf{Lack of Deployment Integration:} Systems are rarely packaged into accessible web interfaces with live webcam streaming, speech synthesis, dataset collection, model retraining, and video dictionaries.
+\end{enumerate}

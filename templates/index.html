@@ -952,6 +952,36 @@
                 </a>
               </div>
             </div>
+
+            <!-- Document Card 3: System Architecture Infographic -->
+            <div style="background: rgba(15,18,25,0.7); border: 1px solid rgba(139,92,246,0.3); border-radius: var(--radius-md); padding: 1.1rem; display: flex; flex-direction: column; justify-content: space-between;">
+              <div>
+                <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+                  <i class="fa-solid fa-sitemap" style="color: #a78bfa; font-size: 1.3rem;"></i>
+                  <strong style="color: #fff; font-size: 0.95rem;">System Architecture Infographic</strong>
+                </div>
+                <p style="font-size: 0.8rem; color: var(--text-secondary); line-height: 1.4; margin-bottom: 0.6rem;">
+                  Publication-grade 5-stage architecture diagram illustrating bidirectional multimodal translation (Sign-to-Text &amp; Voice-to-Sign), 156-D invariant feature normalization, and dual AI inference engines.
+                </p>
+                <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.8rem;">
+                  <span><strong>Format:</strong> Ultra HD 4K (3548 &times; 1774) &bull; 300 DPI Vector SVG</span><br>
+                  <span><strong>Editions:</strong> ☀️ Light Presentation Edition &bull; 🌙 Cyberpunk Dark Edition</span>
+                </div>
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 0.4rem;">
+                <div style="display: flex; gap: 0.35rem;">
+                  <a href="/static/assets/system_architecture.png" target="_blank" class="btn btn-outline btn-sm" style="flex: 1; justify-content: center; font-size: 0.75rem; text-decoration: none;" title="Open 4K Light Edition in new tab">
+                    <i class="fa-solid fa-sun" style="color: #f59e0b;"></i> Light 4K
+                  </a>
+                  <a href="/static/assets/system_architecture_dark.png" target="_blank" class="btn btn-outline btn-sm" style="flex: 1; justify-content: center; font-size: 0.75rem; text-decoration: none;" title="Open 4K Dark Edition in new tab">
+                    <i class="fa-solid fa-moon" style="color: #a78bfa;"></i> Dark 4K
+                  </a>
+                  <a href="/static/assets/system_architecture_dark.svg" target="_blank" class="btn btn-outline btn-sm" style="font-size: 0.75rem; text-decoration: none;" title="Open scalable vector SVG">
+                    <i class="fa-solid fa-vector-square"></i> SVG
+                  </a>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -1030,6 +1060,32 @@
             <div id="modal-match-status" style="font-size: 1.35rem; font-weight: 800; color: var(--accent-amber); margin-top: 0.35rem;">Waiting for Pose...</div>
           </div>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- System Architecture Modal Viewer -->
+  <div id="architecture-modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.92); backdrop-filter: blur(16px); z-index: 10002; align-items: center; justify-content: center; padding: 1.25rem;">
+    <div style="background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); width: 96%; max-width: 1400px; height: 92vh; display: flex; flex-direction: column; overflow: hidden; box-shadow: var(--shadow-md);">
+      <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.9rem 1.4rem; border-bottom: 1px solid var(--border-subtle);">
+        <div style="display: flex; align-items: center; gap: 0.75rem;">
+          <i class="fa-solid fa-sitemap" style="color: var(--accent-cyan); font-size: 1.2rem;"></i>
+          <h2 id="arch-modal-title" style="font-family: var(--font-display); font-size: 1.15rem; margin: 0; font-weight: 700;">ISL Vision - System Architecture (Light 4K Edition)</h2>
+        </div>
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+          <button id="btn-arch-toggle-theme" class="btn btn-outline btn-sm">
+            <i class="fa-solid fa-moon"></i> Switch to Dark Edition
+          </button>
+          <a id="btn-arch-download" href="/static/assets/system_architecture.png" download="ISL_Vision_System_Architecture.png" class="btn btn-primary btn-sm" style="text-decoration: none;">
+            <i class="fa-solid fa-download"></i> Download 4K
+          </a>
+          <button id="btn-close-arch-modal" class="btn btn-outline btn-sm" style="padding: 0.3rem 0.6rem;">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+      </div>
+      <div id="arch-modal-container" style="flex: 1; overflow: auto; display: flex; justify-content: center; align-items: center; background: #0c121e; padding: 1rem;">
+        <img id="arch-modal-img" src="/static/assets/system_architecture.png" alt="ISL Vision Architecture" style="max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 8px; box-shadow: 0 10px 40px rgba(0,0,0,0.6); transition: all 0.3s ease;">
       </div>
     </div>
   </div>

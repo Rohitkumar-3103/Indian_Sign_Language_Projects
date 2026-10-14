@@ -1,0 +1,135 @@
+% Appendix A: Algorithmic Listings
+
+\chapter{Algorithmic Listings}
+\label{AppendixA}
+
+\section{156-Dimensional Bimanual Feature Extraction}
+\begin{lstlisting}[language=Python]
+import numpy as np
+
+def extract_bimanual_features(multi_hand_landmarks, multi_handedness):
+    """
+    Extracts 156-D scale and translation invariant feature vector.
+    Hand 1 (75-D) + Hand 2 (75-D) + Inter-hand features (6-D) = 156-D.
+    """
+    features = np.zeros(156, dtype=np.float32)
+    if not multi_hand_landmarks:
+        return features
+
+    hands_dict = {}
+    for idx, hand_lms in enumerate(multi_hand_landmarks):
+        label = multi_handedness[idx].classification[0].label
+        hands_dict[label] = hand_lms
+
+    def process_hand(hand_lms):
+        coords = np.array([[lm.x, lm.y, lm.z] for lm in hand_lms.landmark], dtype=np.float32)
+        wrist = coords[0].copy()
+        centered = coords - wrist
+        scale = np.max(np.linalg.norm(centered, axis=1)) + 1e-7
+        norm_coords = centered / scale
+        
+        # 63 normalized coordinates
+        h_feat = list(norm_coords.flatten())
+        
+        # 5 fingertip-to-wrist radii (landmarks 4, 8, 12, 16, 20)
+        tips = [4, 8, 12, 16, 20]
+        h_feat.extend([np.linalg.norm(norm_coords[t]) for t in tips])
+        
+        # 4 thumb-to-fingertip distances
+        h_feat.extend([np.linalg.norm(norm_coords[4] - norm_coords[t]) for t in [8, 12, 16, 20]])
+        
+        # 3 adjacent finger spreads
+        h_feat.extend([
+            np.linalg.norm(norm_coords[8] - norm_coords[12]),
+            np.linalg.norm(norm_coords[12] - norm_coords[16]),
+            np.linalg.norm(norm_coords[16] - norm_coords[20])
+        ])
+        return np.array(h_feat, dtype=np.float32), wrist
+
+    wrist_right, wrist_left = None, None
+    if "Right" in hands_dict:
+        f_r, wrist_right = process_hand(hands_dict["Right"])
+        features[0:75] = f_r
+        features[150] = 1.0  # right hand presence
+
+    if "Left" in hands_dict:
+        f_l, wrist_left = process_hand(hands_dict["Left"])
+        features[75:150] = f_l
+        features[151] = 1.0  # left hand presence
+
+    # 6 inter-hand spatial offset features
+    if wrist_right is not None and wrist_left is not None:
+        delta = wrist_left - wrist_right
+        features[152:155] = delta
+        features[155] = np.linalg.norm(delta)
+
+    return features
+\end{lstlisting}
+
+\section{Temporal Hysteresis Gesture Accumulator}
+\begin{lstlisting}[language=Python]
+import time
+
+class TemporalGestureAccumulator:
+    def __init__(self, hold_threshold=1.5, confidence_threshold=0.85):
+        self.hold_threshold = hold_threshold
+        self.confidence_threshold = confidence_threshold
+        self.candidate = None
+        self.start_time = None
+        self.lockout_until = 0.0
+        self.current_word = ""
+        self.current_sentence = ""
+
+    def update(self, predicted_class, confidence):
+        now = time.time()
+        if now < self.lockout_until:
+            return 0.0
+        if confidence < self.confidence_threshold:
+            self.candidate = None
+            self.start_time = None
+            return 0.0
+        if predicted_class != self.candidate:
+            self.candidate = predicted_class
+            self.start_time = now
+            return 0.0
+        progress = min(1.0, (now - self.start_time) / self.hold_threshold)
+        if progress >= 1.0:
+            self.commit(self.candidate)
+            self.lockout_until = now + 0.5  # 500 ms lockout
+            self.candidate = None
+            self.start_time = None
+            return 0.0
+        return progress
+
+    def commit(self, gesture):
+        if gesture == "H" or gesture == "Space":
+            if self.current_word:
+                self.current_sentence += self.current_word + " "
+                self.current_word = ""
+        elif gesture == "Clear":
+            self.current_word = ""
+            self.current_sentence = ""
+        else:
+            self.current_word += gesture
+\end{lstlisting}
+
+\section{Client-Side Video Stream and Metadata Polling}
+\begin{lstlisting}[language=JavaScript]
+async function pollDetectionMetadata() {
+  try {
+    const response = await fetch("/get_detection_meta");
+    if (!response.ok) throw new Error("Metadata fetch failed");
+    const data = await response.json();
+    if (data.status === "success") {
+      document.getElementById("confirmed-sign").innerText = data.sign || "--";
+      document.getElementById("active-word").innerText = data.word || "";
+      document.getElementById("active-sentence").innerText = data.sentence || "";
+      const progress = (data.progress || 0) * 100;
+      document.getElementById("progress-bar").style.width = `${progress}%`;
+    }
+  } catch (err) {
+    console.error("Polling error:", err);
+  }
+}
+setInterval(pollDetectionMetadata, 100);
+\end{lstlisting}

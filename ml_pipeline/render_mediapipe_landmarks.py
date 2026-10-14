@@ -238,23 +238,6 @@ def render_diagram(theme="light", output_path="mediapipe_landmarks.png"):
         zorder=9
     )
 
-    # 6. Coordinate Axis Legend Indicator (Top Left)
-    axis_box = patches.FancyBboxPatch(
-        (-0.76, 0.88),
-        0.28,
-        0.18,
-        boxstyle="round,pad=0.02,rounding_size=0.03",
-        facecolor=palette["card_bg"],
-        edgecolor=palette["border"],
-        linewidth=1.0,
-        zorder=8
-    )
-    ax.add_patch(axis_box)
-
-    ax.text(-0.62, 1.02, "Coordinate System", color=palette["text_main"], fontsize=9.0, fontweight="bold", ha="center", va="center", zorder=9)
-    ax.text(-0.62, 0.97, "X : Horizontal [0..1]", color=palette["colors"]["Index"]["text"], fontsize=7.8, fontweight="medium", ha="center", va="center", zorder=9)
-    ax.text(-0.62, 0.93, "Y : Vertical [0..1]", color=palette["colors"]["Middle"]["text"], fontsize=7.8, fontweight="medium", ha="center", va="center", zorder=9)
-    ax.text(-0.62, 0.89, "Z : Depth (Rel. Wrist)", color=palette["colors"]["Ring"]["text"], fontsize=7.8, fontweight="medium", ha="center", va="center", zorder=9)
 
     # 7. Bottom Legend / Anatomical Breakdown Box
     legend_box = patches.FancyBboxPatch(

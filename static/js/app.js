@@ -88,6 +88,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   setupYouTubeToSign();
   setupStudioControls();
   setupDictionary();
+  setupArchitectureModal();
 });
 
 
@@ -2387,5 +2388,61 @@ function formatTime(seconds) {
   const m = Math.floor(seconds / 60);
   const s = Math.floor(seconds % 60);
   return `${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
+}
+
+// ==========================================================================
+// System Architecture Modal Controller
+// ==========================================================================
+function setupArchitectureModal() {
+  const modal = document.getElementById("architecture-modal");
+  const openBtn = document.getElementById("btn-open-arch-modal");
+  const closeBtn = document.getElementById("btn-close-arch-modal");
+  const toggleBtn = document.getElementById("btn-arch-toggle-theme");
+  const imgEl = document.getElementById("arch-modal-img");
+  const titleEl = document.getElementById("arch-modal-title");
+  const downloadBtn = document.getElementById("btn-arch-download");
+  const container = document.getElementById("arch-modal-container");
+
+  if (!modal || !openBtn) return;
+
+  let isDarkTheme = false;
+
+  openBtn.addEventListener("click", () => {
+    modal.style.display = "flex";
+  });
+
+  const closeModal = () => {
+    modal.style.display = "none";
+  };
+
+  if (closeBtn) closeBtn.addEventListener("click", closeModal);
+  modal.addEventListener("click", (e) => {
+    if (e.target === modal) closeModal();
+  });
+
+  if (toggleBtn) {
+    toggleBtn.addEventListener("click", () => {
+      isDarkTheme = !isDarkTheme;
+      if (isDarkTheme) {
+        imgEl.src = "/static/assets/system_architecture_dark.png";
+        titleEl.textContent = "ISL Vision - System Architecture (Dark 4K Edition)";
+        toggleBtn.innerHTML = '<i class="fa-solid fa-sun"></i> Switch to Light Edition';
+        if (downloadBtn) {
+          downloadBtn.href = "/static/assets/system_architecture_dark.png";
+          downloadBtn.download = "ISL_Vision_System_Architecture_Dark.png";
+        }
+        if (container) container.style.background = "#071221";
+      } else {
+        imgEl.src = "/static/assets/system_architecture.png";
+        titleEl.textContent = "ISL Vision - System Architecture (Light 4K Edition)";
+        toggleBtn.innerHTML = '<i class="fa-solid fa-moon"></i> Switch to Dark Edition';
+        if (downloadBtn) {
+          downloadBtn.href = "/static/assets/system_architecture.png";
+          downloadBtn.download = "ISL_Vision_System_Architecture_Light.png";
+        }
+        if (container) container.style.background = "#0c121e";
+      }
+    });
+  }
 }
 
