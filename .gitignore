@@ -27,23 +27,10 @@ scratch/
 static/downloads/*
 !static/downloads/.gitkeep
 
-# LaTeX auxiliary build files
-thesis_template_0.1/*.aux
-thesis_template_0.1/*.bcf
-thesis_template_0.1/*.blg
-thesis_template_0.1/*.log
-thesis_template_0.1/*.out
-thesis_template_0.1/*.run.xml
-thesis_template_0.1/*.toc
-thesis_template_0.1/*.lof
-thesis_template_0.1/*.lot
-thesis_template_0.1/*.synctex.gz
-thesis_template_0.1/Chapters/*.aux
-thesis_template_0.1/Appendices/*.aux
-
 # Presentations & Project Reports
 *.pptx
 *.ppt
+!ISL_Thesis_Presentation.pptx
 *PROJECT_REPORT*.md
 *COMPREHENSIVE_REPORT*.md
 RESEARCH_PAPERS_COMPREHENSIVE_SURVEY_REPORT.md

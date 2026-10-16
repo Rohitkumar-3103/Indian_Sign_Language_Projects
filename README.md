@@ -6,6 +6,7 @@
 [![Active Classes](https://img.shields.io/badge/Gesture%20Classes-45-cyan.svg)](models/isl_classes.json)
 [![Demonstration Videos](https://img.shields.io/badge/HD%20Videos-203%20Clips-purple.svg)](Images/isl_videos/)
 [![Research Papers](https://img.shields.io/badge/Research%20Papers-18%20Synthesized-orange.svg)](Research_Papers/)
+[![Thesis Presentation](https://img.shields.io/badge/Defense%20Deck-18%20Slides-teal.svg)](ISL_Thesis_Presentation.pptx)
 
 An end-to-end, real-time Indian Sign Language (ISL) recognition system, dataset studio, interactive dictionary, and bidirectional translation platform built with **Python (Flask, OpenCV, MediaPipe, Scikit-learn)** and a modern **Glassmorphic Web Frontend**.
 
@@ -49,6 +50,7 @@ Designed and synthesized directly based on the research papers located in the re
    - Enriched on **42,000 real dataset images** across 35 classes (`Images/data/`) and user-uploaded reference images (`Images/A-Z/`, `Images/0-9/`).
    - Normalized 156-dimensional feature vector invariant to camera distance, translation, and scale.
    - Model retrained on **7,352 landmark samples** with **85.18% validation accuracy** and **85.23% F1-score**.
+   - Fully executed Jupyter Research Pipeline ([`Indian_Sign_Language_Pipeline.ipynb`](Indian_Sign_Language_Pipeline.ipynb)) with cross-validation and embedded interactive HTML report ([`Indian_Sign_Language_Pipeline.html`](Indian_Sign_Language_Pipeline.html)).
    - Live **"Retrain Model Now"** button with in-memory model hot-reloading (zero server restart needed).
 
 7. **Research Benchmark & Architecture Dashboard (18 Papers Synthesized)**
@@ -90,9 +92,10 @@ Indian_Sign_Language_Projects/
 ├── run.bat                            # Windows interactive 1-click startup & processing launcher
 ├── requirements.txt                   # Core Python dependencies (Flask, OpenCV, MediaPipe, etc.)
 ├── main.pdf                           # Compiled Master Thesis documentation & empirical report
+├── ISL_Thesis_Presentation.pptx       # Master Thesis Presentation (18 Widescreen Slides)
 ├── .env.example                       # Environment template (DEEPGRAM_API_KEY, Flask configs)
-├── Indian_Sign_Language_Pipeline.ipynb# Interactive ML pipeline notebook (data prep, training, metrics)
-├── Indian_Sign_Language_Pipeline.html # HTML export of research & pipeline experiments
+├── Indian_Sign_Language_Pipeline.ipynb# Interactive ML pipeline notebook (executed with 45-class benchmarks)
+├── Indian_Sign_Language_Pipeline.html # Standalone interactive HTML report of the ML pipeline
 ├── ml_pipeline/                       # Machine Learning & Gesture Processing Subsystem
 │   ├── run_pipeline.py                # Unified CLI runner for verification, extraction & training
 │   ├── feature_extractor.py           # MediaPipe 3D Landmark Extractor & Normalizer (156-dim)
