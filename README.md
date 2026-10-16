@@ -1,5 +1,12 @@
 # 🤟 Indian Sign Language (ISL) Recognition & Translation System
 
+[![Python 3.12](https://img.shields.io/badge/Python-3.12%2B-blue.svg)](https://www.python.org/)
+[![Model Accuracy](https://img.shields.io/badge/Accuracy-85.18%25-success.svg)](models/model_metrics.json)
+[![F1-Score](https://img.shields.io/badge/F1--Score-85.23%25-emerald.svg)](models/model_metrics.json)
+[![Active Classes](https://img.shields.io/badge/Gesture%20Classes-45-cyan.svg)](models/isl_classes.json)
+[![Demonstration Videos](https://img.shields.io/badge/HD%20Videos-203%20Clips-purple.svg)](Images/isl_videos/)
+[![Research Papers](https://img.shields.io/badge/Research%20Papers-18%20Synthesized-orange.svg)](Research_Papers/)
+
 An end-to-end, real-time Indian Sign Language (ISL) recognition system, dataset studio, interactive dictionary, and bidirectional translation platform built with **Python (Flask, OpenCV, MediaPipe, Scikit-learn)** and a modern **Glassmorphic Web Frontend**.
 
 Designed and synthesized directly based on the research papers located in the repository, with special support for **two-handed ISL gestures**, **single-handed gestures**, **number digits (0-9)**, and **common conversational words/phrases**.
@@ -80,12 +87,15 @@ Unlike American Sign Language (ASL) which is largely single-handed, **Indian Sig
 ```
 Indian_Sign_Language_Projects/
 ├── app.py                             # Unified Flask Web Server, REST APIs & Live Detection Engine
-├── run.bat                            # Windows 1-click startup launcher
+├── run.bat                            # Windows interactive 1-click startup & processing launcher
+├── run.ps1                            # PowerShell interactive launcher & task executor
 ├── requirements.txt                   # Core Python dependencies (Flask, OpenCV, MediaPipe, etc.)
+├── main.pdf                           # Compiled Master Thesis documentation & empirical report
 ├── .env.example                       # Environment template (DEEPGRAM_API_KEY, Flask configs)
 ├── Indian_Sign_Language_Pipeline.ipynb# Interactive ML pipeline notebook (data prep, training, metrics)
 ├── Indian_Sign_Language_Pipeline.html # HTML export of research & pipeline experiments
 ├── ml_pipeline/                       # Machine Learning & Gesture Processing Subsystem
+│   ├── run_pipeline.py                # Unified CLI runner for verification, extraction & training
 │   ├── feature_extractor.py           # MediaPipe 3D Landmark Extractor & Normalizer (156-dim)
 │   ├── isl_dictionary.py              # ISL Gesture Definitions, Categories & Anatomical Tips
 │   ├── model_trainer.py               # Random Forest / Classifier Trainer & Performance Evaluator
@@ -113,7 +123,7 @@ Indian_Sign_Language_Projects/
 │   ├── js/
 │   │   ├── app.js                     # Frontend controller (camera detection, TTS, YouTube sync)
 │   │   └── marked.min.js              # Fast client-side markdown parser
-│   ├── assets/signs/                  # 168+ whole-word ISL sign reference images
+│   ├── assets/signs/                  # 168+ whole-word ISL sign reference images (optimized)
 │   └── signs/                         # Alphabet fingerspelling cards (A-Z)
 ├── templates/
 │   ├── index.html                     # Flagship 7-tab Single Page Application
@@ -123,6 +133,11 @@ Indian_Sign_Language_Projects/
 │   ├── index.html                     # Visual Research Asset Gallery viewer
 │   ├── catalog.json                   # Machine-readable figure catalog
 │   └── CATALOG.md                     # Markdown catalog of all 189 figures
+├── thesis_template_0.1/               # Complete LaTeX Thesis Project & Chapter Documentation
+│   ├── main.tex                       # Master LaTeX thesis document
+│   ├── Chapters/                      # Chapters 1-6 (Introduction through Conclusion)
+│   ├── Appendices/                    # Algorithmic code listings & mathematical proofs
+│   └── Figures/                       # High-resolution architectural & benchmark figures
 └── isl-translator-main/
     └── backend/
         └── .env.example               # Backend environment sample for YouTube translation service
@@ -135,7 +150,7 @@ Indian_Sign_Language_Projects/
 ### 1. Interactive 1-Click Launchers (Windows & PowerShell)
 Double-click `run.bat` or run in terminal:
 
-```bat
+```bash
 # Launch interactive menu (Default [1] starts Flask app)
 run.bat
 
