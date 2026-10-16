@@ -88,7 +88,6 @@ Unlike American Sign Language (ASL) which is largely single-handed, **Indian Sig
 Indian_Sign_Language_Projects/
 ├── app.py                             # Unified Flask Web Server, REST APIs & Live Detection Engine
 ├── run.bat                            # Windows interactive 1-click startup & processing launcher
-├── run.ps1                            # PowerShell interactive launcher & task executor
 ├── requirements.txt                   # Core Python dependencies (Flask, OpenCV, MediaPipe, etc.)
 ├── main.pdf                           # Compiled Master Thesis documentation & empirical report
 ├── .env.example                       # Environment template (DEEPGRAM_API_KEY, Flask configs)
