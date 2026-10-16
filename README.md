@@ -173,16 +173,11 @@ PowerShell users can also run:
 .\run.ps1 pipeline  # Direct pipeline execution
 ```
 
-### 2. Python CLI Processing Pipeline (`ml_pipeline/run_pipeline.py`)
-Run processing and ML tasks programmatically:
+### 2. Run with Python
 ```bash
-py -3.12 ml_pipeline/run_pipeline.py verify            # Health & asset audit
-py -3.12 ml_pipeline/run_pipeline.py train             # Retrain model & update metrics
-py -3.12 ml_pipeline/run_pipeline.py extract-uploaded  # Extract landmarks from Images/
-py -3.12 ml_pipeline/run_pipeline.py build-dict        # Compile 204-sign dictionary
-py -3.12 ml_pipeline/run_pipeline.py render-landmarks  # Render 3D MediaPipe diagrams
-py -3.12 ml_pipeline/run_pipeline.py full-pipeline     # Complete 4-step pipeline
+py -3.12 app.py
 ```
+Open **http://127.0.0.1:5000** in your web browser.
 
 ### 3. Using the Web Application Modes
 - **Sign to Text**: Click "Start Camera". Perform signs with single or both hands. The AI HUD detects gestures with confidence, top-3 matches, sentence accumulator, and natural voice Text-to-Speech (TTS).
