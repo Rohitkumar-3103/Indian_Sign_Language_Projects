@@ -133,11 +133,6 @@ Indian_Sign_Language_Projects/
 │   ├── index.html                     # Visual Research Asset Gallery viewer
 │   ├── catalog.json                   # Machine-readable figure catalog
 │   └── CATALOG.md                     # Markdown catalog of all 189 figures
-├── thesis_template_0.1/               # Complete LaTeX Thesis Project & Chapter Documentation
-│   ├── main.tex                       # Master LaTeX thesis document
-│   ├── Chapters/                      # Chapters 1-6 (Introduction through Conclusion)
-│   ├── Appendices/                    # Algorithmic code listings & mathematical proofs
-│   └── Figures/                       # High-resolution architectural & benchmark figures
 └── isl-translator-main/
     └── backend/
         └── .env.example               # Backend environment sample for YouTube translation service
