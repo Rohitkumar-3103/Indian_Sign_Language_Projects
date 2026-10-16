@@ -130,20 +130,46 @@ Indian_Sign_Language_Projects/
 
 ---
 
-## 🚀 Quick Start Guide
+## 🚀 Quick Start & Processing Guide
 
-### 1. Launch the Main Web Application
-Simply double-click:
+### 1. Interactive 1-Click Launchers (Windows & PowerShell)
+Double-click `run.bat` or run in terminal:
+
 ```bat
+# Launch interactive menu (Default [1] starts Flask app)
 run.bat
-```
-Or run in your terminal:
-```bash
-py -3.12 app.py
-```
-Open **http://127.0.0.1:5000** in your web browser.
 
-### 2. Using the Web Application Modes
+# Or run specific modules directly:
+run.bat app         # Launch Flask server & live camera (http://127.0.0.1:5000)
+run.bat pipeline    # Run full end-to-end processing pipeline
+run.bat train       # Retrain Random Forest classifier
+run.bat extract     # Extract 156-D landmarks from uploaded sign images
+run.bat dict        # Rebuild master dictionary & video mappings
+run.bat papers      # Extract research paper figures & update gallery
+run.bat verify      # Verify datasets, models, and assets
+run.bat install     # Install/update dependencies from requirements.txt
+run.bat thesis      # Recompile LaTeX thesis document (main.pdf)
+```
+
+PowerShell users can also run:
+```powershell
+.\run.ps1           # Interactive PowerShell menu
+.\run.ps1 app       # Direct Flask startup
+.\run.ps1 pipeline  # Direct pipeline execution
+```
+
+### 2. Python CLI Processing Pipeline (`ml_pipeline/run_pipeline.py`)
+Run processing and ML tasks programmatically:
+```bash
+py -3.12 ml_pipeline/run_pipeline.py verify            # Health & asset audit
+py -3.12 ml_pipeline/run_pipeline.py train             # Retrain model & update metrics
+py -3.12 ml_pipeline/run_pipeline.py extract-uploaded  # Extract landmarks from Images/
+py -3.12 ml_pipeline/run_pipeline.py build-dict        # Compile 204-sign dictionary
+py -3.12 ml_pipeline/run_pipeline.py render-landmarks  # Render 3D MediaPipe diagrams
+py -3.12 ml_pipeline/run_pipeline.py full-pipeline     # Complete 4-step pipeline
+```
+
+### 3. Using the Web Application Modes
 - **Sign to Text**: Click "Start Camera". Perform signs with single or both hands. The AI HUD detects gestures with confidence, top-3 matches, sentence accumulator, and natural voice Text-to-Speech (TTS).
 - **Text to Sign**: Type any English or Hindi sentence. The player animates through whole-word ISL signs and letter-by-letter fingerspelling with variable speeds (0.5x - 2.0x) and filmstrip carousel.
 - **Voice to Sign**: Click "Start Listening" and speak into your microphone. Real-time speech recognition transcribes your words and immediately triggers the ISL visual player.
@@ -151,4 +177,5 @@ Open **http://127.0.0.1:5000** in your web browser.
 - **Dataset Studio**: Capture new samples for any of the 45 classes directly via webcam bursts and retrain the model on-the-fly.
 - **ISL Dictionary & Practice**: Search and view detailed anatomical guides for all signs, or test your skills in "Practice with Camera" mode.
 - **Research & Benchmarks**: View live confusion matrices, precision/recall/F1 metrics, comparative analysis of 18 ISL research papers, and browse the 189-figure visual asset gallery.
+
 

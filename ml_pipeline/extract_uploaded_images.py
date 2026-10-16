@@ -11,6 +11,7 @@ import os
 import cv2
 import csv
 import numpy as np
+import mediapipe as mp
 try:
     from ml_pipeline.feature_extractor import ISLFeatureExtractor, build_feature_vector
 except ImportError:
