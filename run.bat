@@ -180,6 +180,11 @@ cls
 echo ==============================================================================
 echo    Recompiling LaTeX Thesis Documentation
 echo ==============================================================================
+if not exist thesis_template_0.1 (
+    echo [INFO] LaTeX thesis source folder is not present.
+    echo Master thesis document is preserved at root: main.pdf
+    goto :AFTER_EXEC
+)
 where pdflatex >nul 2>&1
 if !ERRORLEVEL! NEQ 0 (
     echo [ERROR] pdflatex not found in PATH! Make sure MiKTeX or TeXLive is installed.

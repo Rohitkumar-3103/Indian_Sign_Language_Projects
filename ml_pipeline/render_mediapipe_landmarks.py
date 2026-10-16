@@ -289,15 +289,17 @@ def render_diagram(theme="light", output_path="mediapipe_landmarks.png"):
 if __name__ == "__main__":
     thesis_dir = r"d:\code\Web Development\Project\Indian_Sign_Language_Projects\thesis_template_0.1\Figures"
     
-    # 1. Report version (White academic background for LaTeX Thesis)
-    report_fig = os.path.join(thesis_dir, "mediapipe_landmarks.png")
-    render_diagram("light", report_fig)
+    if os.path.exists(thesis_dir):
+        # 1. Report version (White academic background for LaTeX Thesis)
+        report_fig = os.path.join(thesis_dir, "mediapipe_landmarks.png")
+        render_diagram("light", report_fig)
 
-    # 2. Dark version (Widescreen 16:9 for Presentation Slides)
-    dark_fig = os.path.join(thesis_dir, "mediapipe_landmarks_dark.png")
-    render_diagram("dark", dark_fig)
+        # 2. Dark version (Widescreen 16:9 for Presentation Slides)
+        dark_fig = os.path.join(thesis_dir, "mediapipe_landmarks_dark.png")
+        render_diagram("dark", dark_fig)
 
-    # 3. Also copy to root project Figures or Images if needed
+    # 3. Copy to root project Images folder
     images_dir = r"d:\code\Web Development\Project\Indian_Sign_Language_Projects\Images"
     os.makedirs(images_dir, exist_ok=True)
     render_diagram("light", os.path.join(images_dir, "mediapipe_landmarks.png"))
+    render_diagram("dark", os.path.join(images_dir, "mediapipe_landmarks_dark.png"))

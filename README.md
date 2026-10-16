@@ -140,32 +140,13 @@ Indian_Sign_Language_Projects/
 
 ---
 
-## 🚀 Quick Start & Processing Guide
+## 🚀 Quick Start Guide
 
-### 1. Interactive 1-Click Launchers (Windows & PowerShell)
+### 1. Launch with run.bat
 Double-click `run.bat` or run in terminal:
 
 ```bash
-# Launch interactive menu (Default [1] starts Flask app)
 run.bat
-
-# Or run specific modules directly:
-run.bat app         # Launch Flask server & live camera (http://127.0.0.1:5000)
-run.bat pipeline    # Run full end-to-end processing pipeline
-run.bat train       # Retrain Random Forest classifier
-run.bat extract     # Extract 156-D landmarks from uploaded sign images
-run.bat dict        # Rebuild master dictionary & video mappings
-run.bat papers      # Extract research paper figures & update gallery
-run.bat verify      # Verify datasets, models, and assets
-run.bat install     # Install/update dependencies from requirements.txt
-run.bat thesis      # Recompile LaTeX thesis document (main.pdf)
-```
-
-PowerShell users can also run:
-```powershell
-.\run.ps1           # Interactive PowerShell menu
-.\run.ps1 app       # Direct Flask startup
-.\run.ps1 pipeline  # Direct pipeline execution
 ```
 
 ### 2. Run with Python

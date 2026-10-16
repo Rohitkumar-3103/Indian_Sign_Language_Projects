@@ -112,6 +112,10 @@ function Invoke-Action([string]$act) {
         "thesis" {
             Show-Header
             Write-Host "Recompiling LaTeX Thesis Documentation..." -ForegroundColor Yellow
+            if (-not (Test-Path "thesis_template_0.1")) {
+                Write-Host "[INFO] LaTeX thesis source folder is not present. Master document preserved at main.pdf" -ForegroundColor Green
+                return
+            }
             if (-not (Get-Command "pdflatex" -ErrorAction SilentlyContinue)) {
                 Write-Host "[ERROR] pdflatex not found in PATH! Ensure MiKTeX or TeXLive is installed." -ForegroundColor Red
                 return
