@@ -37,6 +37,7 @@ const AppState = {
   ttsTimer: null,
   ttsSpeed: 1100,
   ttsMediaMode: "video",
+  ttsSoundEnabled: false, // Default OFF - stop automatic sound/speech
 
   // Voice to Sign Player State
   voiceRecognition: null,
@@ -1024,13 +1025,72 @@ function speakSentence() {
 }
 
 // ==========================================================================
-// Tab 2: Text to Sign Translation & Animation Player
+// Tab 2: Text to Sign Translation & Animation Player (with Sound & Voice)
 // ==========================================================================
+
+let audioCtxInstance = null;
+function playSignTransitionChime() {
+  try {
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (!AudioCtx) return;
+    if (!audioCtxInstance) audioCtxInstance = new AudioCtx();
+    if (audioCtxInstance.state === "suspended") {
+      audioCtxInstance.resume();
+    }
+    const osc = audioCtxInstance.createOscillator();
+    const gain = audioCtxInstance.createGain();
+    osc.type = "sine";
+    osc.frequency.setValueAtTime(659.25, audioCtxInstance.currentTime); // E5
+    osc.frequency.exponentialRampToValueAtTime(880, audioCtxInstance.currentTime + 0.08); // A5
+    gain.gain.setValueAtTime(0.06, audioCtxInstance.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, audioCtxInstance.currentTime + 0.12);
+    osc.connect(gain);
+    gain.connect(audioCtxInstance.destination);
+    osc.start();
+    osc.stop(audioCtxInstance.currentTime + 0.12);
+  } catch (e) {
+    // Audio context not allowed or unsupported
+  }
+}
+
+function speakSignToken(signData) {
+  if (!AppState.ttsSoundEnabled) return;
+  if (!("speechSynthesis" in window)) return;
+  
+  try {
+    window.speechSynthesis.cancel();
+    const speakText = signData.token || signData.name || "";
+    if (!speakText) return;
+
+    const utterance = new SpeechSynthesisUtterance(speakText);
+    
+    // Scale utterance rate with current playback speed
+    if (AppState.ttsSpeed <= 700) {
+      utterance.rate = 1.35;
+    } else if (AppState.ttsSpeed >= 1600) {
+      utterance.rate = 0.85;
+    } else {
+      utterance.rate = 1.05;
+    }
+    utterance.pitch = 1.0;
+
+    const voices = window.speechSynthesis.getVoices();
+    const indVoice = voices.find(v => v.lang.includes("en-IN") || v.name.includes("India")) ||
+                     voices.find(v => v.lang.startsWith("en"));
+    if (indVoice) utterance.voice = indVoice;
+
+    window.speechSynthesis.speak(utterance);
+  } catch (err) {
+    console.log("Sign speech error:", err);
+  }
+}
 
 function setupTextToSign() {
   const inputEl = document.getElementById("tts-input-text");
   const translateBtn = document.getElementById("btn-translate-text");
   const resetBtn = document.getElementById("btn-clear-tts-input");
+  const speakTextBtn = document.getElementById("btn-speak-tts-text");
+  const soundToggleBtn = document.getElementById("btn-player-sound-toggle");
 
   if (!inputEl || !translateBtn) return;
 
@@ -1041,9 +1101,22 @@ function setupTextToSign() {
   resetBtn.addEventListener("click", () => {
     inputEl.value = "";
     AppState.ttsSequence = [];
+    if ("speechSynthesis" in window) window.speechSynthesis.cancel();
     renderSignPlayer(null, 0, 0);
     renderFilmstrip([]);
   });
+
+  // Speak full text button
+  if (speakTextBtn) {
+    speakTextBtn.addEventListener("click", () => {
+      const txt = (inputEl.value || "").trim();
+      if (!txt) {
+        showToast("Please enter text to speak.", "warning");
+        return;
+      }
+      speakSentence(txt);
+    });
+  }
 
   // Preset phrase chips
   document.querySelectorAll(".tts-preset-btn").forEach(btn => {
@@ -1061,6 +1134,31 @@ function setupTextToSign() {
     AppState.ttsCurrentIndex = 0;
     playTtsSequence();
   });
+
+  // Sound toggle button (ON/OFF - Default OFF)
+  if (soundToggleBtn) {
+    soundToggleBtn.addEventListener("click", () => {
+      AppState.ttsSoundEnabled = !AppState.ttsSoundEnabled;
+      const vidEl = document.getElementById("player-sign-video");
+
+      if (AppState.ttsSoundEnabled) {
+        soundToggleBtn.className = "btn btn-primary btn-sm";
+        soundToggleBtn.innerHTML = '<i class="fa-solid fa-volume-high"></i> <span id="player-sound-label">Sound: ON</span>';
+        if (vidEl) vidEl.muted = false;
+        showToast("Audio & voice readout enabled!");
+        playSignTransitionChime();
+        if (AppState.ttsSequence && AppState.ttsSequence[AppState.ttsCurrentIndex]) {
+          speakSignToken(AppState.ttsSequence[AppState.ttsCurrentIndex]);
+        }
+      } else {
+        soundToggleBtn.className = "btn btn-outline btn-sm";
+        soundToggleBtn.innerHTML = '<i class="fa-solid fa-volume-xmark"></i> <span id="player-sound-label">Sound: OFF</span>';
+        if (vidEl) vidEl.muted = true;
+        if ("speechSynthesis" in window) window.speechSynthesis.cancel();
+        showToast("Audio readout muted.", "info");
+      }
+    });
+  }
 
   // Speed selector
   document.querySelectorAll(".speed-btn").forEach(btn => {
@@ -1160,6 +1258,7 @@ function renderSignPlayer(signData, currentIndex, totalSigns) {
   if (canPlayVideo && vidEl) {
     imgEl.style.display = "none";
     vidEl.style.display = "block";
+    vidEl.muted = !AppState.ttsSoundEnabled;
     if (vidEl.src !== signData.video_url) {
       vidEl.src = signData.video_url;
     }
@@ -1185,13 +1284,26 @@ function renderSignPlayer(signData, currentIndex, totalSigns) {
   const progressPct = ((currentIndex + 1) / totalSigns) * 100;
   progBar.style.width = `${progressPct}%`;
 
-  // Highlight filmstrip item
+  // Highlight filmstrip item without scrolling browser window
   document.querySelectorAll("#filmstrip-scroller .filmstrip-thumb").forEach((thumb, idx) => {
     thumb.classList.toggle("active", idx === currentIndex);
     if (idx === currentIndex) {
-      thumb.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
+      const scroller = document.getElementById("filmstrip-scroller");
+      if (scroller) {
+        const thumbOffset = thumb.offsetLeft - scroller.offsetLeft;
+        scroller.scrollTo({
+          left: Math.max(0, thumbOffset - (scroller.clientWidth / 2) + (thumb.clientWidth / 2)),
+          behavior: "smooth"
+        });
+      }
     }
   });
+
+  // Sound & Voice Readout for the active sign
+  if (AppState.ttsSoundEnabled) {
+    playSignTransitionChime();
+    speakSignToken(signData);
+  }
 }
 
 function renderFilmstrip(sequence) {
@@ -1425,7 +1537,7 @@ async function processSpokenVoice(spokenText) {
     renderVoiceFilmstrip(AppState.voiceSequence);
     showToast(`Voice translated: "${spokenText}" (${data.total_signs} gestures)`);
 
-    // Auto-scroll and auto-play
+    // Auto-scroll smoothly down to the sign player stage so the animation is immediately visible
     displayArea.scrollIntoView({ behavior: "smooth", block: "start" });
     playVoiceSequence();
   } catch (err) {
@@ -1480,10 +1592,18 @@ function renderVoicePlayer(signData, currentIndex, totalSigns) {
   const progressPct = ((currentIndex + 1) / totalSigns) * 100;
   progBar.style.width = `${progressPct}%`;
 
+  // Highlight filmstrip item without scrolling browser window
   document.querySelectorAll("#voice-filmstrip-scroller .filmstrip-thumb").forEach((thumb, idx) => {
     thumb.classList.toggle("active", idx === currentIndex);
     if (idx === currentIndex) {
-      thumb.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
+      const scroller = document.getElementById("voice-filmstrip-scroller");
+      if (scroller) {
+        const thumbOffset = thumb.offsetLeft - scroller.offsetLeft;
+        scroller.scrollTo({
+          left: Math.max(0, thumbOffset - (scroller.clientWidth / 2) + (thumb.clientWidth / 2)),
+          behavior: "smooth"
+        });
+      }
     }
   });
 }
@@ -2008,13 +2128,26 @@ function onPracticeSuccess() {
 // YouTube Video to ISL Sign Language Controller
 // ==========================================================================
 
+// ==========================================================================
+// YouTube Video to ISL Sign Language Controller (Full Playback Controls & Sync)
+// ==========================================================================
+
 let ytPlayer = null;
 let ytIframeApiReady = false;
+let ytPendingVideoId = null;
 let ytWords = [];
 let ytActiveWordIndex = -1;
 let ytSyncInterval = null;
 let ytIsPlaying = false;
 let ytCurrentVideoId = null;
+let ytCurrentTime = 0;
+let ytCurrentDuration = 0;
+let ytLastReportedTime = 0;
+let ytLastReportedDuration = 0;
+let ytIsScrubbing = false;
+let ytIsMuted = false;
+let ytVolume = 100;
+let ytAutoScrollTranscript = false;
 
 function ensureYouTubeIframeApi() {
   if (window.YT && window.YT.Player) {
@@ -2030,9 +2163,75 @@ function ensureYouTubeIframeApi() {
     window.onYouTubeIframeAPIReady = () => {
       ytIframeApiReady = true;
       console.log("YouTube IFrame API ready.");
+      if (ytPendingVideoId) {
+        loadIframeVideo(ytPendingVideoId);
+      }
     };
   }
 }
+
+// Universal command dispatcher (works with YT.Player API or direct iframe postMessage)
+function sendYtCommand(func, args = []) {
+  // 1. YouTube Player API
+  if (ytPlayer && typeof ytPlayer[func] === "function") {
+    try {
+      ytPlayer[func](...args);
+      return true;
+    } catch (e) {
+      console.log(`YT Player ${func} API call failed:`, e);
+    }
+  }
+
+  // 2. Direct iframe postMessage fallback (works even across origins with enablejsapi=1)
+  const iframe = document.querySelector("#yt-iframe-container iframe");
+  if (iframe && iframe.contentWindow) {
+    try {
+      iframe.contentWindow.postMessage(JSON.stringify({
+        event: "command",
+        func: func,
+        args: args
+      }), "*");
+      return true;
+    } catch (e) {
+      console.log(`postMessage ${func} failed:`, e);
+    }
+  }
+
+  // 3. HTML5 Video fallback
+  const html5Video = document.getElementById("yt-html5-player");
+  if (html5Video && html5Video.style.display !== "none") {
+    if (func === "playVideo") html5Video.play().catch(() => {});
+    else if (func === "pauseVideo") html5Video.pause();
+    else if (func === "seekTo" && args[0] !== undefined) html5Video.currentTime = args[0];
+    else if (func === "setPlaybackRate" && args[0] !== undefined) html5Video.playbackRate = args[0];
+    else if (func === "setVolume" && args[0] !== undefined) html5Video.volume = args[0] / 100;
+    else if (func === "mute") html5Video.muted = true;
+    else if (func === "unMute") html5Video.muted = false;
+    return true;
+  }
+
+  return false;
+}
+
+// Listen for YouTube postMessage infoDelivery events for resilient synchronization
+window.addEventListener("message", (event) => {
+  try {
+    const data = typeof event.data === "string" ? JSON.parse(event.data) : event.data;
+    if (data && data.event === "infoDelivery" && data.info) {
+      if (typeof data.info.currentTime === "number") {
+        ytLastReportedTime = data.info.currentTime;
+      }
+      if (typeof data.info.duration === "number" && data.info.duration > 0) {
+        ytLastReportedDuration = data.info.duration;
+      }
+      if (typeof data.info.playerState === "number") {
+        onYouTubePlayerStateChange({ data: data.info.playerState });
+      }
+    }
+  } catch (e) {
+    // Non-JSON message from other extensions or sources
+  }
+});
 
 function setupYouTubeToSign() {
   ensureYouTubeIframeApi();
@@ -2045,8 +2244,15 @@ function setupYouTubeToSign() {
   const demoChips = document.querySelectorAll(".yt-demo-chip");
   const playToggleBtn = document.getElementById("btn-yt-play-toggle");
   const rewindBtn = document.getElementById("btn-yt-rewind");
+  const rewind10Btn = document.getElementById("btn-yt-rewind-10");
   const forwardBtn = document.getElementById("btn-yt-forward");
+  const forward10Btn = document.getElementById("btn-yt-forward-10");
+  const replayBtn = document.getElementById("btn-yt-replay");
   const speedBtns = document.querySelectorAll(".yt-speed-btn");
+  const seekSlider = document.getElementById("yt-seek-slider");
+  const muteBtn = document.getElementById("btn-yt-mute");
+  const volumeSlider = document.getElementById("yt-volume-slider");
+  const fullscreenBtn = document.getElementById("btn-yt-fullscreen");
 
   if (!convertBtn) return;
 
@@ -2056,7 +2262,7 @@ function setupYouTubeToSign() {
       try {
         const text = await navigator.clipboard.readText();
         urlInput.value = text;
-        showToast("Pasted URL from clipboard");
+        showToast("Pasted YouTube URL from clipboard");
       } catch (err) {
         showToast("Clipboard access denied or empty", "warning");
       }
@@ -2132,32 +2338,48 @@ function setupYouTubeToSign() {
   // Player Play/Pause Toggle
   if (playToggleBtn) {
     playToggleBtn.addEventListener("click", () => {
-      if (ytPlayer && ytPlayer.getPlayerState) {
-        const state = ytPlayer.getPlayerState();
-        if (state === 1) {
-          ytPlayer.pauseVideo();
-        } else {
-          ytPlayer.playVideo();
-        }
-      } else {
-        const html5Video = document.getElementById("yt-html5-player");
-        if (html5Video && html5Video.src) {
-          if (html5Video.paused) html5Video.play();
-          else html5Video.pause();
-        }
-      }
+      toggleYouTubePlayback();
     });
   }
 
-  // Rewind / Forward
+  // Rewind / Forward controls
+  if (rewind10Btn) {
+    rewind10Btn.addEventListener("click", () => seekRelative(-10));
+  }
   if (rewindBtn) {
-    rewindBtn.addEventListener("click", () => {
-      seekRelative(-5);
-    });
+    rewindBtn.addEventListener("click", () => seekRelative(-5));
   }
   if (forwardBtn) {
-    forwardBtn.addEventListener("click", () => {
-      seekRelative(5);
+    forwardBtn.addEventListener("click", () => seekRelative(5));
+  }
+  if (forward10Btn) {
+    forward10Btn.addEventListener("click", () => seekRelative(10));
+  }
+  if (replayBtn) {
+    replayBtn.addEventListener("click", () => {
+      seekToTimestamp(0);
+      sendYtCommand("playVideo");
+      showToast("Replaying video from start");
+    });
+  }
+
+  // Interactive Timeline Scrubber Slider
+  if (seekSlider) {
+    seekSlider.addEventListener("input", (e) => {
+      ytIsScrubbing = true;
+      const pct = parseFloat(e.target.value);
+      const targetTime = (pct / 100) * (ytCurrentDuration || 1);
+      const currentTimeText = document.getElementById("yt-current-time-text");
+      const seekFill = document.getElementById("yt-seek-fill");
+      if (currentTimeText) currentTimeText.textContent = formatTime(targetTime);
+      if (seekFill) seekFill.style.width = `${pct}%`;
+    });
+
+    seekSlider.addEventListener("change", (e) => {
+      const pct = parseFloat(e.target.value);
+      const targetTime = (pct / 100) * (ytCurrentDuration || 1);
+      seekToTimestamp(targetTime);
+      setTimeout(() => { ytIsScrubbing = false; }, 200);
     });
   }
 
@@ -2167,25 +2389,163 @@ function setupYouTubeToSign() {
       speedBtns.forEach(b => b.classList.remove("active"));
       btn.classList.add("active");
       const speed = parseFloat(btn.getAttribute("data-speed") || "1.0");
-      if (ytPlayer && ytPlayer.setPlaybackRate) {
-        ytPlayer.setPlaybackRate(speed);
-      }
-      const html5Video = document.getElementById("yt-html5-player");
-      if (html5Video) html5Video.playbackRate = speed;
+      sendYtCommand("setPlaybackRate", [speed]);
+      showToast(`Playback speed set to ${speed}x`);
     });
   });
+
+  // Mute / Unmute
+  if (muteBtn) {
+    muteBtn.addEventListener("click", () => {
+      ytIsMuted = !ytIsMuted;
+      const icon = document.getElementById("yt-mute-icon");
+      if (ytIsMuted) {
+        sendYtCommand("mute");
+        if (icon) icon.className = "fa-solid fa-volume-xmark";
+        muteBtn.classList.add("active");
+        showToast("Audio muted");
+      } else {
+        sendYtCommand("unMute");
+        if (icon) icon.className = "fa-solid fa-volume-high";
+        muteBtn.classList.remove("active");
+        showToast("Audio unmuted");
+      }
+    });
+  }
+
+  // Volume slider
+  if (volumeSlider) {
+    volumeSlider.addEventListener("input", (e) => {
+      ytVolume = parseInt(e.target.value, 10);
+      sendYtCommand("setVolume", [ytVolume]);
+      const icon = document.getElementById("yt-mute-icon");
+      if (ytVolume === 0) {
+        if (icon) icon.className = "fa-solid fa-volume-xmark";
+      } else {
+        if (icon) icon.className = "fa-solid fa-volume-high";
+        if (ytIsMuted) {
+          sendYtCommand("unMute");
+          ytIsMuted = false;
+        }
+      }
+    });
+  }
+
+  // Fullscreen button
+  if (fullscreenBtn) {
+    fullscreenBtn.addEventListener("click", () => {
+      const container = document.getElementById("yt-iframe-container");
+      if (!container) return;
+      if (!document.fullscreenElement) {
+        container.requestFullscreen().catch(() => {});
+      } else {
+        document.exitFullscreen().catch(() => {});
+      }
+    });
+  }
+
+  // Global Keyboard Shortcuts (active when YouTube tab is in view)
+  window.addEventListener("keydown", (e) => {
+    const ytSection = document.getElementById("tab-youtube-to-sign");
+    if (!ytSection || !ytSection.classList.contains("active")) return;
+    
+    // Don't intercept if user is typing into an input
+    const tag = (e.target && e.target.tagName) || "";
+    if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
+
+    if (e.code === "Space") {
+      e.preventDefault();
+      toggleYouTubePlayback();
+    } else if (e.code === "ArrowLeft") {
+      e.preventDefault();
+      seekRelative(-5);
+    } else if (e.code === "ArrowRight") {
+      e.preventDefault();
+      seekRelative(5);
+    } else if (e.code === "ArrowUp") {
+      e.preventDefault();
+      ytVolume = Math.min(100, ytVolume + 10);
+      if (volumeSlider) volumeSlider.value = ytVolume;
+      sendYtCommand("setVolume", [ytVolume]);
+      showToast(`Volume: ${ytVolume}%`);
+    } else if (e.code === "ArrowDown") {
+      e.preventDefault();
+      ytVolume = Math.max(0, ytVolume - 10);
+      if (volumeSlider) volumeSlider.value = ytVolume;
+      sendYtCommand("setVolume", [ytVolume]);
+      showToast(`Volume: ${ytVolume}%`);
+    } else if (e.code === "KeyM") {
+      e.preventDefault();
+      if (muteBtn) muteBtn.click();
+    } else if (e.code === "KeyF") {
+      e.preventDefault();
+      if (fullscreenBtn) fullscreenBtn.click();
+    }
+  });
+
+  // Auto-Scroll stationary toggle (prevent page jumping while viewing signs)
+  const autoscrollBtn = document.getElementById("btn-yt-autoscroll");
+  const autoscrollIcon = document.getElementById("yt-autoscroll-icon");
+  const autoscrollStatus = document.getElementById("yt-autoscroll-status");
+
+  if (autoscrollBtn) {
+    autoscrollBtn.addEventListener("click", () => {
+      ytAutoScrollTranscript = !ytAutoScrollTranscript;
+      if (ytAutoScrollTranscript) {
+        autoscrollBtn.classList.add("active");
+        if (autoscrollIcon) autoscrollIcon.className = "fa-solid fa-arrows-up-down";
+        if (autoscrollStatus) {
+          autoscrollStatus.textContent = "ON (Internal Only)";
+          autoscrollStatus.style.color = "#38bdf8";
+        }
+        showToast("Transcript follow enabled (box-internal only)");
+      } else {
+        autoscrollBtn.classList.remove("active");
+        if (autoscrollIcon) autoscrollIcon.className = "fa-solid fa-lock";
+        if (autoscrollStatus) {
+          autoscrollStatus.textContent = "OFF (Stationary)";
+          autoscrollStatus.style.color = "#94a3b8";
+        }
+        showToast("Auto-scroll stopped. Signs view locked stationary.");
+      }
+    });
+  }
+}
+
+function toggleYouTubePlayback() {
+  if (ytIsPlaying) {
+    sendYtCommand("pauseVideo");
+    updatePlaybackUiState(false);
+  } else {
+    sendYtCommand("playVideo");
+    updatePlaybackUiState(true);
+  }
+}
+
+function updatePlaybackUiState(isPlaying) {
+  ytIsPlaying = isPlaying;
+  const playToggleBtn = document.getElementById("btn-yt-play-toggle");
+  const stateBadge = document.getElementById("yt-player-state-badge");
+
+  if (playToggleBtn) {
+    playToggleBtn.innerHTML = isPlaying 
+      ? `<i class="fa-solid fa-pause"></i> Pause` 
+      : `<i class="fa-solid fa-play"></i> Play`;
+  }
+  if (stateBadge) {
+    stateBadge.textContent = isPlaying ? "Playing" : "Paused";
+    stateBadge.style.background = isPlaying ? "rgba(16,185,129,0.2)" : "rgba(99,102,241,0.2)";
+    stateBadge.style.color = isPlaying ? "#34d399" : "#c7d2fe";
+  }
 }
 
 function seekRelative(seconds) {
-  if (ytPlayer && ytPlayer.getCurrentTime) {
-    const cur = ytPlayer.getCurrentTime();
-    ytPlayer.seekTo(Math.max(0, cur + seconds), true);
-  } else {
-    const html5Video = document.getElementById("yt-html5-player");
-    if (html5Video && html5Video.currentTime !== undefined) {
-      html5Video.currentTime = Math.max(0, html5Video.currentTime + seconds);
-    }
+  let targetTime = Math.max(0, (ytCurrentTime || 0) + seconds);
+  if (ytCurrentDuration > 0) {
+    targetTime = Math.min(ytCurrentDuration, targetTime);
   }
+  seekToTimestamp(targetTime);
+  showToast(`${seconds > 0 ? "+" : ""}${seconds}s (${formatTime(targetTime)})`);
 }
 
 function loadYouTubeTranslationData(data) {
@@ -2198,10 +2558,39 @@ function loadYouTubeTranslationData(data) {
   const wordCountEl = document.getElementById("yt-transcript-word-count");
   if (wordCountEl) wordCountEl.textContent = `(${ytWords.length} words)`;
 
-  // Render Transcript Chips
+  // Render Interactive Transcript Chips
   const transcriptFlow = document.getElementById("yt-transcript-flow");
   if (transcriptFlow) {
     transcriptFlow.innerHTML = "";
+
+    if (ytWords.length > 0) {
+      // Top Quick-Jump Bar if speech starts later in the video
+      const jumpBar = document.createElement("div");
+      jumpBar.className = "yt-speech-summary-bar";
+      jumpBar.style.cssText = "width: 100%; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem; background: rgba(245,158,11,0.12); border: 1px solid rgba(245,158,11,0.3); border-radius: 6px; padding: 0.45rem 0.85rem; margin-bottom: 0.5rem; font-size: 0.8rem; color: #fbbf24;";
+      jumpBar.innerHTML = `
+        <span><i class="fa-solid fa-bolt" style="color: #f59e0b;"></i> <strong>${ytWords.length} Words Synchronized</strong> &bull; Spoken signs begin at <strong>${formatTime(ytWords[0].start)}</strong></span>
+        <button class="btn btn-primary btn-sm" id="btn-yt-jump-speech" style="padding: 0.25rem 0.75rem; font-size: 0.75rem; background: linear-gradient(135deg, #ef4444, #f59e0b); border: none;">
+          <i class="fa-solid fa-forward-step"></i> Jump to First Spoken Sign (${formatTime(ytWords[0].start)})
+        </button>
+      `;
+      transcriptFlow.appendChild(jumpBar);
+      
+      const jumpBtn = jumpBar.querySelector("#btn-yt-jump-speech");
+      if (jumpBtn) {
+        jumpBtn.addEventListener("click", () => {
+          seekToTimestamp(ytWords[0].start);
+          sendYtCommand("playVideo");
+          showToast(`Jumped to sign "${ytWords[0].clean}" at ${ytWords[0].start}s`);
+        });
+      }
+
+      // Immediately preview the first word's gesture demonstration and fingerspelling in the HUD!
+      renderActiveSignPresentation(ytWords[0], 0, true);
+    } else {
+      transcriptFlow.innerHTML = `<span style="color: var(--text-muted); font-size: 0.85rem;">No spoken words transcribed from this video. Try another video URL or click the demo button above.</span>`;
+    }
+
     ytWords.forEach((item, index) => {
       const chip = document.createElement("span");
       chip.className = "yt-transcript-chip";
@@ -2210,6 +2599,8 @@ function loadYouTubeTranslationData(data) {
       chip.title = `Seek to ${item.start}s (Sign: ${item.clean})`;
       chip.addEventListener("click", () => {
         seekToTimestamp(item.start);
+        sendYtCommand("playVideo");
+        showToast(`Jumped to "${item.clean}" at ${item.start}s`);
       });
       transcriptFlow.appendChild(chip);
     });
@@ -2227,15 +2618,27 @@ function loadYouTubeTranslationData(data) {
 }
 
 function loadIframeVideo(videoId) {
+  ytPendingVideoId = videoId;
   const html5Player = document.getElementById("yt-html5-player");
-  const playerTarget = document.getElementById("yt-player-target");
+  const container = document.getElementById("yt-iframe-container");
   if (html5Player) html5Player.style.display = "none";
+
+  // Re-create a clean player target inside container
+  let playerTarget = document.getElementById("yt-player-target");
+  if (!playerTarget && container) {
+    playerTarget = document.createElement("div");
+    playerTarget.id = "yt-player-target";
+    playerTarget.style.width = "100%";
+    playerTarget.style.height = "100%";
+    container.appendChild(playerTarget);
+  }
   if (playerTarget) playerTarget.style.display = "block";
 
   if (window.YT && window.YT.Player) {
     try {
       if (ytPlayer && typeof ytPlayer.loadVideoById === "function") {
         ytPlayer.loadVideoById(videoId);
+        ytPendingVideoId = null;
         return;
       }
       ytPlayer = new window.YT.Player("yt-player-target", {
@@ -2244,18 +2647,30 @@ function loadIframeVideo(videoId) {
           autoplay: 1,
           controls: 1,
           modestbranding: 1,
-          rel: 0
+          rel: 0,
+          enablejsapi: 1,
+          origin: window.location.origin
         },
         events: {
+          onReady: (event) => {
+            ytPendingVideoId = null;
+            try {
+              ytCurrentDuration = event.target.getDuration() || 0;
+            } catch (e) {}
+          },
           onStateChange: onYouTubePlayerStateChange
         }
       });
     } catch (e) {
-      console.log("YT Player init fallback:", e);
-      playerTarget.innerHTML = `<iframe id="yt-direct-iframe" width="100%" height="100%" src="https://www.youtube.com/embed/${videoId}?enablejsapi=1&autoplay=1" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
+      console.log("YT Player init fallback to direct iframe:", e);
+      if (playerTarget) {
+        playerTarget.innerHTML = `<iframe id="yt-direct-iframe" width="100%" height="100%" src="https://www.youtube.com/embed/${videoId}?enablejsapi=1&autoplay=1&origin=${encodeURIComponent(window.location.origin)}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
+      }
     }
   } else {
-    playerTarget.innerHTML = `<iframe id="yt-direct-iframe" width="100%" height="100%" src="https://www.youtube.com/embed/${videoId}?enablejsapi=1&autoplay=1" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
+    if (playerTarget) {
+      playerTarget.innerHTML = `<iframe id="yt-direct-iframe" width="100%" height="100%" src="https://www.youtube.com/embed/${videoId}?enablejsapi=1&autoplay=1&origin=${encodeURIComponent(window.location.origin)}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
+    }
   }
 }
 
@@ -2271,27 +2686,20 @@ function loadHtml5Media(url) {
 }
 
 function onYouTubePlayerStateChange(event) {
-  const playToggleBtn = document.getElementById("btn-yt-play-toggle");
+  // event.data: -1 unstarted, 0 ended, 1 playing, 2 paused, 3 buffering, 5 cued
   if (event.data === 1) {
-    ytIsPlaying = true;
-    if (playToggleBtn) playToggleBtn.innerHTML = `<i class="fa-solid fa-pause"></i> Pause`;
-  } else {
-    ytIsPlaying = false;
-    if (playToggleBtn) playToggleBtn.innerHTML = `<i class="fa-solid fa-play"></i> Play`;
+    updatePlaybackUiState(true);
+  } else if (event.data === 2 || event.data === 0) {
+    updatePlaybackUiState(false);
   }
 }
 
 function seekToTimestamp(seconds) {
-  if (ytPlayer && ytPlayer.seekTo) {
-    ytPlayer.seekTo(seconds, true);
-    ytPlayer.playVideo();
-  } else {
-    const html5 = document.getElementById("yt-html5-player");
-    if (html5) {
-      html5.currentTime = seconds;
-      html5.play();
-    }
-  }
+  ytCurrentTime = seconds;
+  sendYtCommand("seekTo", [seconds, true]);
+  sendYtCommand("playVideo");
+  updatePlaybackUiState(true);
+  syncWordWithTimestamp(seconds);
 }
 
 function startPlaybackSyncLoop() {
@@ -2301,22 +2709,59 @@ function startPlaybackSyncLoop() {
     let currentTime = 0;
     let duration = 0;
 
-    if (ytPlayer && ytPlayer.getCurrentTime && typeof ytPlayer.getCurrentTime === "function") {
+    // 1. Try YouTube Player API
+    if (ytPlayer && typeof ytPlayer.getCurrentTime === "function") {
       try {
         currentTime = ytPlayer.getCurrentTime() || 0;
         duration = ytPlayer.getDuration() || 0;
       } catch (e) {}
-    } else {
+    } 
+    
+    // 2. Try HTML5 Video
+    if (currentTime === 0 && duration === 0) {
       const html5 = document.getElementById("yt-html5-player");
-      if (html5) {
+      if (html5 && html5.style.display !== "none") {
         currentTime = html5.currentTime || 0;
         duration = html5.duration || 0;
+        if (!html5.paused !== ytIsPlaying) {
+          updatePlaybackUiState(!html5.paused);
+        }
       }
     }
 
+    // 3. Fallback to postMessage reported values
+    if (currentTime === 0 && ytLastReportedTime > 0) {
+      currentTime = ytLastReportedTime;
+    }
+    if (duration === 0 && ytLastReportedDuration > 0) {
+      duration = ytLastReportedDuration;
+    }
+
+    if (currentTime > 0) ytCurrentTime = currentTime;
+    if (duration > 0) ytCurrentDuration = duration;
+
+    // Update timer texts
     const timerEl = document.getElementById("yt-playback-timer");
+    const currentTimeText = document.getElementById("yt-current-time-text");
+    const durationTimeText = document.getElementById("yt-duration-time-text");
+    const seekSlider = document.getElementById("yt-seek-slider");
+    const seekFill = document.getElementById("yt-seek-fill");
+
     if (timerEl && duration > 0) {
       timerEl.textContent = `${formatTime(currentTime)} / ${formatTime(duration)}`;
+    }
+    if (currentTimeText && !ytIsScrubbing) {
+      currentTimeText.textContent = formatTime(currentTime);
+    }
+    if (durationTimeText && duration > 0) {
+      durationTimeText.textContent = formatTime(duration);
+    }
+
+    // Update scrubber progress bar when not actively dragged
+    if (!ytIsScrubbing && duration > 0) {
+      const pct = Math.min(100, (currentTime / duration) * 100);
+      if (seekSlider) seekSlider.value = pct;
+      if (seekFill) seekFill.style.width = `${pct}%`;
     }
 
     syncWordWithTimestamp(currentTime);
@@ -2326,15 +2771,53 @@ function startPlaybackSyncLoop() {
 function syncWordWithTimestamp(time) {
   if (!ytWords || ytWords.length === 0) return;
 
-  const foundIndex = ytWords.findIndex(w => time >= w.start && time <= w.end);
-  if (foundIndex !== -1 && foundIndex !== ytActiveWordIndex) {
-    ytActiveWordIndex = foundIndex;
-    const active = ytWords[foundIndex];
-    renderActiveSignPresentation(active, foundIndex);
+  // Check active word (with 1.5s persistence hold)
+  const foundIndex = ytWords.findIndex(w => time >= w.start && time <= (w.end + 1.5));
+  if (foundIndex !== -1) {
+    if (foundIndex !== ytActiveWordIndex) {
+      ytActiveWordIndex = foundIndex;
+      const active = ytWords[foundIndex];
+      renderActiveSignPresentation(active, foundIndex, false);
+    }
+    return;
+  }
+
+  // If outside speech range, find next upcoming word
+  const nextWordIndex = ytWords.findIndex(w => w.start > time);
+  const subtitleEl = document.getElementById("yt-live-subtitle");
+  const wordEl = document.getElementById("yt-active-word");
+  const timingEl = document.getElementById("yt-word-timing");
+  const confEl = document.getElementById("yt-word-confidence");
+
+  if (nextWordIndex !== -1) {
+    const nextWord = ytWords[nextWordIndex];
+    const diff = Math.max(0, nextWord.start - time);
+    if (subtitleEl) {
+      subtitleEl.style.pointerEvents = "auto";
+      subtitleEl.style.cursor = "pointer";
+      subtitleEl.innerHTML = `<span style="color: #fbbf24;"><i class="fa-solid fa-clock"></i> Next sign in ${formatTime(diff)}: <strong>"${nextWord.clean}"</strong> &mdash; <u>Click to Jump</u></span>`;
+      subtitleEl.onclick = () => {
+        seekToTimestamp(nextWord.start);
+        sendYtCommand("playVideo");
+      };
+    }
+    if (ytActiveWordIndex !== -2) {
+      ytActiveWordIndex = -2;
+      if (wordEl) wordEl.innerHTML = `<span style="font-size: 1.5rem; color: #a5b4fc;">WAITING FOR SPEECH</span><div style="font-size: 0.82rem; color: #fbbf24; margin-top: 0.2rem;">Next sign: <strong>${nextWord.clean}</strong> at ${formatTime(nextWord.start)}</div>`;
+      if (timingEl) timingEl.textContent = `Starts at ${formatTime(nextWord.start)}`;
+      if (confEl) confEl.textContent = `Approaching`;
+      // Preview upcoming sign demonstration so the stage is never blank
+      renderActiveSignPresentation(nextWord, nextWordIndex, true);
+    }
+  } else if (ytWords.length > 0 && time > ytWords[ytWords.length - 1].end) {
+    if (subtitleEl) {
+      subtitleEl.textContent = "All spoken signs in video completed. Replay video to review.";
+      subtitleEl.onclick = null;
+    }
   }
 }
 
-function renderActiveSignPresentation(activeWord, index) {
+function renderActiveSignPresentation(activeWord, index, isPreview = false) {
   const wordEl = document.getElementById("yt-active-word");
   const timingEl = document.getElementById("yt-word-timing");
   const confEl = document.getElementById("yt-word-confidence");
@@ -2342,23 +2825,55 @@ function renderActiveSignPresentation(activeWord, index) {
   const lettersContainer = document.getElementById("yt-letters-container");
   const matchContainer = document.getElementById("yt-video-match-container");
   const islVideo = document.getElementById("yt-isl-demonstration-video");
+  const matchBadge = document.getElementById("yt-match-badge");
+  const videoPlaceholder = document.getElementById("yt-video-placeholder");
+  const matchIcon = document.getElementById("yt-match-icon");
+  const matchTitle = document.getElementById("yt-match-title");
 
-  if (wordEl) wordEl.textContent = activeWord.clean || activeWord.word;
+  if (wordEl) {
+    if (isPreview) {
+      wordEl.innerHTML = `<span style="color: #fbbf24;">${activeWord.clean || activeWord.word}</span> <span style="font-size: 0.72rem; color: #94a3b8; font-weight: 500; display: block;">(Previewing Sign Pose)</span>`;
+    } else {
+      wordEl.textContent = activeWord.clean || activeWord.word;
+    }
+  }
   if (timingEl) timingEl.textContent = `${activeWord.start}s - ${activeWord.end}s`;
-  if (confEl) confEl.textContent = `${Math.round((activeWord.confidence || 1) * 100)}% Confidence`;
-  if (subtitleEl) subtitleEl.textContent = activeWord.word;
+  if (confEl) confEl.textContent = isPreview ? "Approaching Sign" : `${Math.round((activeWord.confidence || 1) * 100)}% Match`;
+  if (subtitleEl && !isPreview) subtitleEl.textContent = activeWord.word;
 
-  // 1. ISL Full Gesture Video Demonstration (if matched in 203 vocabulary dictionary)
+  // 1. ISL Full Gesture Video Demonstration (stable stage height prevents vertical jumping)
   if (activeWord.has_video && activeWord.video_url) {
     if (matchContainer) matchContainer.style.display = "flex";
     if (islVideo) {
+      islVideo.style.display = "block";
       if (islVideo.src !== window.location.origin + activeWord.video_url) {
         islVideo.src = activeWord.video_url;
-        islVideo.play().catch(e => console.log("Loop video deferred:", e));
       }
+      islVideo.play().catch(e => console.log("Loop video deferred:", e));
     }
+    if (videoPlaceholder) videoPlaceholder.style.display = "none";
+    if (matchBadge) {
+      matchBadge.textContent = "Dictionary Match";
+      matchBadge.style.background = "rgba(16,185,129,0.15)";
+      matchBadge.style.color = "#34d399";
+    }
+    if (matchIcon) matchIcon.className = "fa-solid fa-circle-check";
+    if (matchTitle) matchTitle.textContent = "ISL Gesture Video Demonstration";
   } else {
-    if (matchContainer) matchContainer.style.display = "none";
+    // Keep stage height constant so fingerspelling cards below never bounce up and down
+    if (matchContainer) matchContainer.style.display = "flex";
+    if (islVideo) {
+      islVideo.style.display = "none";
+      try { islVideo.pause(); } catch(e) {}
+    }
+    if (videoPlaceholder) videoPlaceholder.style.display = "flex";
+    if (matchBadge) {
+      matchBadge.textContent = "Fingerspelling";
+      matchBadge.style.background = "rgba(245,158,11,0.15)";
+      matchBadge.style.color = "#fbbf24";
+    }
+    if (matchIcon) matchIcon.className = "fa-solid fa-hands-asl-interpreting";
+    if (matchTitle) matchTitle.textContent = "Alphabet Fingerspelling Mode";
   }
 
   // 2. Dynamic Fingerspelling Sign Cards
@@ -2375,12 +2890,24 @@ function renderActiveSignPresentation(activeWord, index) {
     });
   }
 
-  // 3. Highlight Transcript Chip
+  // 3. Highlight Transcript Chip WITHOUT scrolling the whole browser window!
   document.querySelectorAll(".yt-transcript-chip").forEach(c => c.classList.remove("active-chip"));
   const activeChip = document.getElementById(`yt-chip-${index}`);
   if (activeChip) {
     activeChip.classList.add("active-chip");
-    activeChip.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    
+    // Auto-scroll ONLY if explicitly toggled ON by user, and ONLY scroll internal transcriptFlow
+    // ZERO window or document jumping so sign language stays stably in view at all times!
+    if (ytAutoScrollTranscript && !isPreview) {
+      const flowContainer = document.getElementById("yt-transcript-flow");
+      if (flowContainer) {
+        const chipTop = activeChip.offsetTop - flowContainer.offsetTop;
+        flowContainer.scrollTo({
+          top: Math.max(0, chipTop - (flowContainer.clientHeight / 2) + 20),
+          behavior: "smooth"
+        });
+      }
+    }
   }
 }
 

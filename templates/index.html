@@ -250,9 +250,14 @@
               <i class="fa-solid fa-keyboard" style="color: var(--accent-cyan);"></i>
               <span>Enter English or Hindi Text</span>
             </div>
-            <button class="btn btn-outline btn-sm" id="btn-clear-tts-input">
-              <i class="fa-solid fa-rotate-left"></i> Reset
-            </button>
+            <div style="display: flex; gap: 0.4rem;">
+              <button class="btn btn-outline btn-sm" id="btn-speak-tts-text" title="Speak entire input text aloud">
+                <i class="fa-solid fa-volume-high"></i> Speak Text
+              </button>
+              <button class="btn btn-outline btn-sm" id="btn-clear-tts-input">
+                <i class="fa-solid fa-rotate-left"></i> Reset
+              </button>
+            </div>
           </div>
 
           <textarea id="tts-input-text" class="sign-textarea" placeholder="Type words, phrases, or names (e.g. Hello, Thank You, Namaste, Water, Food, Amit 2026)...">HELLO AMIT THANK YOU</textarea>
@@ -283,7 +288,7 @@
             <span class="stage-hands-tag hand-tag one-hand" id="player-hands-tag">1 Hand</span>
             <span class="stage-video-badge" id="player-video-badge" style="display: none;"><i class="fa-solid fa-play"></i> Video Mode</span>
             <img id="player-sign-image" class="stage-sign-image" src="/static/assets/signs/HELLO.jpg" alt="Sign Pose">
-            <video id="player-sign-video" class="stage-sign-video" playsinline loop muted style="display: none;"></video>
+            <video id="player-sign-video" class="stage-sign-video" playsinline loop style="display: none;"></video>
           </div>
 
           <div class="player-meta-box">
@@ -303,7 +308,7 @@
             <button class="btn btn-outline btn-sm" id="btn-player-prev" title="Previous Sign">
               <i class="fa-solid fa-backward-step"></i> Prev
             </button>
-            <button class="btn btn-primary btn-sm" id="btn-player-toggle" style="min-width: 100px;">
+            <button class="btn btn-primary btn-sm" id="btn-player-toggle" style="min-width: 95px;">
               <i class="fa-solid fa-play"></i> Play
             </button>
             <button class="btn btn-outline btn-sm" id="btn-player-next" title="Next Sign">
@@ -314,6 +319,9 @@
             </button>
             <button class="btn btn-outline btn-sm" id="btn-player-media-toggle" title="Toggle between HD Video & Static Image">
               <i class="fa-solid fa-film"></i> <span id="player-media-label">Video</span>
+            </button>
+            <button class="btn btn-outline btn-sm" id="btn-player-sound-toggle" title="Toggle Voice Pronunciation & Video Sound">
+              <i class="fa-solid fa-volume-xmark"></i> <span id="player-sound-label">Sound: OFF</span>
             </button>
 
             <div class="speed-selector">
@@ -509,14 +517,17 @@
         <!-- Video Player & ISL Demonstration Showcase Grid -->
         <div id="yt-showcase-grid" style="display: grid; grid-template-columns: 1.25fr 1fr; gap: 1.5rem;">
           
-          <!-- Left: Video Player Card -->
-          <div class="card" style="background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 1.25rem; display: flex; flex-direction: column; gap: 1rem;">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
+          <!-- Left: Video Player Card with Full Controls & Interactive Scrubber -->
+          <div class="card" style="background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 1.25rem; display: flex; flex-direction: column; gap: 0.85rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
               <div style="display: flex; align-items: center; gap: 0.5rem;">
                 <i class="fa-solid fa-play" style="color: #ef4444;"></i>
-                <span id="yt-video-title" style="font-weight: 700; color: #fff; font-size: 0.95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 380px;">Video Player</span>
+                <span id="yt-video-title" style="font-weight: 700; color: #fff; font-size: 0.95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 320px;">Video Player</span>
               </div>
-              <span id="yt-playback-timer" style="font-family: monospace; font-size: 0.8rem; color: var(--text-muted);">00:00 / 00:00</span>
+              <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <span id="yt-playback-timer" style="font-family: monospace; font-size: 0.82rem; color: #fbbf24; background: rgba(0,0,0,0.4); padding: 0.2rem 0.55rem; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1);">00:00 / 00:00</span>
+                <span id="yt-player-state-badge" class="badge" style="background: rgba(99,102,241,0.2); color: #c7d2fe; font-size: 0.7rem; padding: 0.2rem 0.5rem; border-radius: 4px;">Ready</span>
+              </div>
             </div>
 
             <!-- Video Container -->
@@ -526,23 +537,54 @@
                 <div id="yt-player-target" style="width: 100%; height: 100%;"></div>
               </div>
               <!-- Floating Live Subtitle Banner -->
-              <div id="yt-live-subtitle" style="position: absolute; bottom: 45px; left: 5%; right: 5%; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); padding: 0.5rem 1rem; border-radius: 8px; text-align: center; color: #f8fafc; font-size: 1rem; font-weight: 600; border: 1px solid rgba(255,255,255,0.15); pointer-events: none; transition: opacity 0.2s;">
+              <div id="yt-live-subtitle" style="position: absolute; bottom: 15px; left: 5%; right: 5%; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); padding: 0.45rem 1rem; border-radius: 8px; text-align: center; color: #f8fafc; font-size: 0.95rem; font-weight: 600; border: 1px solid rgba(255,255,255,0.15); pointer-events: none; transition: opacity 0.2s;">
                 Play video to start translation
               </div>
             </div>
 
-            <!-- Video Controls Row -->
-            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
-              <div style="display: flex; gap: 0.4rem;">
-                <button class="btn btn-outline btn-sm" id="btn-yt-rewind" style="padding: 0.35rem 0.75rem;"><i class="fa-solid fa-rotate-left"></i> -5s</button>
-                <button class="btn btn-primary btn-sm" id="btn-yt-play-toggle" style="padding: 0.35rem 1rem;"><i class="fa-solid fa-play"></i> Play</button>
-                <button class="btn btn-outline btn-sm" id="btn-yt-forward" style="padding: 0.35rem 0.75rem;">+5s <i class="fa-solid fa-rotate-right"></i></button>
+            <!-- Interactive Seek Timeline / Scrubber Bar -->
+            <div class="yt-progress-container" style="display: flex; flex-direction: column; gap: 0.3rem;">
+              <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.72rem; font-family: monospace; color: var(--text-muted);">
+                <span id="yt-current-time-text">00:00</span>
+                <span style="font-size: 0.7rem; color: var(--accent-cyan); font-weight: 600;"><i class="fa-solid fa-hand-pointer"></i> Drag / Click scrubber to seek</span>
+                <span id="yt-duration-time-text">00:00</span>
               </div>
-              <div style="display: flex; align-items: center; gap: 0.4rem;">
-                <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: 700;">Speed:</span>
-                <button class="btn btn-outline btn-sm yt-speed-btn" data-speed="0.5" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;">0.5x</button>
-                <button class="btn btn-outline btn-sm yt-speed-btn active" data-speed="1.0" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;">1.0x</button>
-                <button class="btn btn-outline btn-sm yt-speed-btn" data-speed="1.25" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;">1.25x</button>
+              <div class="yt-seek-track" id="yt-seek-track" style="position: relative; width: 100%; height: 8px; background: rgba(255,255,255,0.12); border-radius: 4px; cursor: pointer;">
+                <div id="yt-seek-fill" style="position: absolute; left: 0; top: 0; bottom: 0; width: 0%; background: linear-gradient(90deg, #ef4444, #f59e0b); border-radius: 4px; pointer-events: none; transition: width 0.1s linear;"></div>
+                <input type="range" id="yt-seek-slider" min="0" max="100" value="0" step="0.1" title="Seek video position" style="position: absolute; left: 0; top: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; margin: 0; z-index: 5;">
+              </div>
+            </div>
+
+            <!-- Primary Playback Controls Row -->
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; background: rgba(0,0,0,0.3); padding: 0.5rem 0.75rem; border-radius: var(--radius-md); border: 1px solid var(--border-subtle);">
+              <!-- Transport Buttons -->
+              <div style="display: flex; gap: 0.35rem; align-items: center; flex-wrap: wrap;">
+                <button class="btn btn-outline btn-sm" id="btn-yt-rewind-10" title="Rewind 10 seconds" style="padding: 0.35rem 0.6rem;"><i class="fa-solid fa-angles-left"></i> -10s</button>
+                <button class="btn btn-outline btn-sm" id="btn-yt-rewind" title="Rewind 5 seconds" style="padding: 0.35rem 0.6rem;"><i class="fa-solid fa-rotate-left"></i> -5s</button>
+                <button class="btn btn-primary btn-sm" id="btn-yt-play-toggle" title="Play or Pause Video" style="padding: 0.35rem 1.1rem; min-width: 80px;"><i class="fa-solid fa-play"></i> Play</button>
+                <button class="btn btn-outline btn-sm" id="btn-yt-forward" title="Forward 5 seconds" style="padding: 0.35rem 0.6rem;">+5s <i class="fa-solid fa-rotate-right"></i></button>
+                <button class="btn btn-outline btn-sm" id="btn-yt-forward-10" title="Forward 10 seconds" style="padding: 0.35rem 0.6rem;">+10s <i class="fa-solid fa-angles-right"></i></button>
+                <button class="btn btn-secondary btn-sm" id="btn-yt-replay" title="Replay from 00:00" style="padding: 0.35rem 0.6rem;"><i class="fa-solid fa-arrow-rotate-left"></i></button>
+              </div>
+
+              <!-- Speed Controls & Audio / Fullscreen -->
+              <div style="display: flex; align-items: center; gap: 0.45rem; flex-wrap: wrap;">
+                <span style="font-size: 0.72rem; color: var(--text-muted); font-weight: 700;">Speed:</span>
+                <button class="btn btn-outline btn-sm yt-speed-btn" data-speed="0.5" style="padding: 0.2rem 0.45rem; font-size: 0.72rem;">0.5x</button>
+                <button class="btn btn-outline btn-sm yt-speed-btn" data-speed="0.75" style="padding: 0.2rem 0.45rem; font-size: 0.72rem;">0.75x</button>
+                <button class="btn btn-outline btn-sm yt-speed-btn active" data-speed="1.0" style="padding: 0.2rem 0.45rem; font-size: 0.72rem;">1.0x</button>
+                <button class="btn btn-outline btn-sm yt-speed-btn" data-speed="1.25" style="padding: 0.2rem 0.45rem; font-size: 0.72rem;">1.25x</button>
+
+                <div style="width: 1px; height: 18px; background: rgba(255,255,255,0.15); margin: 0 0.2rem;"></div>
+
+                <button class="btn btn-outline btn-sm" id="btn-yt-mute" title="Toggle Mute" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;">
+                  <i class="fa-solid fa-volume-high" id="yt-mute-icon"></i>
+                </button>
+                <input type="range" id="yt-volume-slider" min="0" max="100" value="100" title="Volume" style="width: 65px; height: 4px; accent-color: #ef4444; cursor: pointer;">
+
+                <button class="btn btn-outline btn-sm" id="btn-yt-fullscreen" title="Fullscreen Video" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;">
+                  <i class="fa-solid fa-expand"></i>
+                </button>
               </div>
             </div>
           </div>
@@ -567,16 +609,22 @@
             <!-- Dynamic ISL Visual Representation Stage -->
             <div style="display: flex; flex-direction: column; gap: 0.75rem;">
               
-              <!-- Full-Word Video Demonstration (when matched in 203 vocabulary dictionary) -->
+              <!-- Full-Word Video Demonstration (Fixed height avoids vertical layout shifts) -->
               <div id="yt-video-match-container" style="background: rgba(0,0,0,0.4); border: 1px solid var(--border-accent); border-radius: var(--radius-md); padding: 0.75rem; display: flex; flex-direction: column; gap: 0.5rem;">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                   <span style="font-size: 0.75rem; font-weight: 700; color: var(--accent-emerald-light); display: flex; align-items: center; gap: 0.4rem;">
-                    <i class="fa-solid fa-circle-check"></i> ISL Gesture Video Demonstration
+                    <i class="fa-solid fa-circle-check" id="yt-match-icon"></i>
+                    <span id="yt-match-title">ISL Gesture Video Demonstration</span>
                   </span>
                   <span id="yt-match-badge" class="badge" style="background: rgba(16,185,129,0.15); color: #34d399; font-size: 0.7rem; padding: 0.15rem 0.5rem; border-radius: 4px;">Dictionary Match</span>
                 </div>
-                <div style="width: 100%; aspect-ratio: 4/3; max-height: 220px; background: #000; border-radius: 6px; overflow: hidden; display: flex; justify-content: center; align-items: center;">
+                <div style="width: 100%; height: 210px; background: #000; border-radius: 6px; overflow: hidden; position: relative; display: flex; justify-content: center; align-items: center;">
                   <video id="yt-isl-demonstration-video" playsinline loop muted autoplay style="width: 100%; height: 100%; object-fit: contain;"></video>
+                  <div id="yt-video-placeholder" style="position: absolute; inset: 0; display: none; flex-direction: column; align-items: center; justify-content: center; background: rgba(15, 23, 42, 0.95); text-align: center; padding: 1rem;">
+                    <i class="fa-solid fa-hands-asl-interpreting" style="font-size: 2.2rem; color: #a5b4fc; margin-bottom: 0.4rem; opacity: 0.85;"></i>
+                    <span style="font-weight: 700; color: #e2e8f0; font-size: 0.85rem;">Fingerspelling Demonstration</span>
+                    <span style="font-size: 0.72rem; color: #94a3b8; margin-top: 0.2rem;">Individual letter signs displayed below</span>
+                  </div>
                 </div>
               </div>
 
@@ -598,13 +646,20 @@
 
         <!-- Full Synchronized Transcript Box -->
         <div class="card" style="background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 1.25rem;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; flex-wrap: wrap; gap: 0.5rem;">
             <div style="display: flex; align-items: center; gap: 0.5rem;">
               <i class="fa-solid fa-align-left" style="color: var(--primary-light);"></i>
               <strong style="color: #fff; font-size: 0.95rem;">Interactive Synchronized Transcript</strong>
               <span id="yt-transcript-word-count" style="font-size: 0.75rem; color: var(--text-muted);">(0 words)</span>
             </div>
-            <span style="font-size: 0.75rem; color: var(--text-muted);">Click any word to seek playback</span>
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+              <!-- Auto-Scroll Lock/Toggle -->
+              <button id="btn-yt-autoscroll" class="btn btn-outline btn-sm" style="font-size: 0.72rem; padding: 0.2rem 0.6rem; display: flex; align-items: center; gap: 0.35rem; color: var(--text-muted);" title="Toggle internal transcript follow">
+                <i class="fa-solid fa-lock" id="yt-autoscroll-icon"></i>
+                <span>Auto-Scroll: <strong id="yt-autoscroll-status" style="color: #94a3b8;">OFF (Stationary)</strong></span>
+              </button>
+              <span style="font-size: 0.75rem; color: var(--text-muted);">Click any word to seek playback</span>
+            </div>
           </div>
 
           <div id="yt-transcript-flow" style="display: flex; flex-wrap: wrap; gap: 0.4rem; max-height: 180px; overflow-y: auto; padding: 0.75rem; background: rgba(0,0,0,0.35); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); line-height: 1.8;">

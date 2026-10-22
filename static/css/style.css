@@ -1856,4 +1856,18 @@ body {
   }
 }
 
+/* YouTube Interactive Scrubber & Controls */
+.yt-seek-track {
+  transition: height 0.15s ease;
+}
+
+.yt-seek-track:hover {
+  height: 11px !important;
+}
+
+.yt-seek-track:hover #yt-seek-fill {
+  background: linear-gradient(90deg, #ef4444, #fbbf24) !important;
+}
+
+
 

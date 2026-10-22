@@ -276,6 +276,87 @@ def download_pipeline_notebook():
 # ----------------- YouTube & Spoken Video to Sign Translation Engine -----------------
 DEFAULT_DEEPGRAM_KEY = os.getenv("DEEPGRAM_API_KEY", "")
 
+# Initialize WORD_ALIASES with all vocabulary words in ISL_CLASSES
+WORD_ALIASES = {k: k for k, v in ISL_CLASSES.items() if v.get("category") == "word"}
+
+# Conversational synonyms & multi-lingual phonetic aliases
+WORD_ALIASES.update({
+    "HI": "HELLO",
+    "HEY": "HELLO",
+    "NAMASTE": "HELLO",
+    "THANKS": "THANK_YOU",
+    "THANK": "THANK_YOU",
+    "THANKYOU": "THANK_YOU",
+    "DHANYAWAD": "THANK_YOU",
+    "YEAH": "YES",
+    "YUP": "YES",
+    "HAAN": "YES",
+    "NOPE": "NO",
+    "NAHI": "NO",
+    "KRPAYA": "PLEASE",
+    "MADAD": "HELP",
+    "PANI": "WATER",
+    "PAANI": "WATER",
+    "KHANA": "FOOD",
+    "LOVE": "ILOVEYOU",
+    "PYAR": "ILOVEYOU",
+    "SWAGAT": "WELCOME",
+    "SWAGATAM": "WELCOME",
+    "MAAF": "SORRY",
+    "APOLOGY": "SORRY",
+    "BHARAT": "INDIA",
+    "HINDUSTAN": "INDIA",
+    "MOM": "MOTHER",
+    "MAA": "MOTHER",
+    "MATA": "MOTHER",
+    "DAD": "FATHER",
+    "PAPA": "FATHER",
+    "PITA": "FATHER",
+    "DOST": "FRIEND",
+    "MITRA": "FRIEND",
+    "DIDI": "SISTER",
+    "BEHEN": "SISTER",
+    "PATNI": "WIFE",
+    "VIDYALAYA": "SCHOOL",
+    "GURU": "TEACHER",
+    "SHIKSHAK": "TEACHER",
+    "CHATRA": "STUDENT",
+    "SIKHO": "LEARN",
+    "KAAM": "WORK",
+    "KHUSH": "HAPPY",
+    "GUSSA": "ANGRY",
+    "PEEYO": "DRINK",
+    "SONA": "SLEEP",
+    "AAJ": "TODAY",
+    "KAL": "TOMORROW",
+    "KAHAN": "WHERE",
+    "KYA": "WHAT",
+    "KYUN": "WHY",
+    "KAUN": "WHO",
+    "KAB": "WHEN",
+    "AAP": "YOU",
+    "TUM": "YOU",
+    "MERA": "MY",
+    "TERA": "YOUR",
+    "HUM": "WE",
+    "ABHI": "RIGHT_NOW",
+    "KITNE": "HOW_MANY",
+    "GOOD_MORNING": "GOOD_MORNING",
+    "GOOD_AFTERNOON": "GOOD_AFTERNOON",
+    "GOOD_NIGHT": "GOOD_NIGHT",
+    "NICE_TO_MEET_YOU": "NICE_TO_MEET_YOU",
+    "SEE_YOU_TOMORROW": "SEE_YOU_TOMORROW",
+    "HOW_MANY": "HOW_MANY",
+    "WHAT_TIME": "WHAT_TIME",
+    "WHAT_HAPPENED": "WHAT_HAPPENED",
+    "RIGHT_NOW": "RIGHT_NOW",
+    "TIME_OUT": "TIME_OUT",
+    "BE_BRAVE": "BE_BRAVE",
+    "BE_BRAVE_ENOUGH": "BE_BRAVE_ENOUGH",
+    "EVERY_TIME": "EVERY_TIME",
+    "EXCUSE_ME": "EXCUSE_ME"
+})
+
 def extract_youtube_video_id(url):
     """Extracts 11-char YouTube video ID from various YouTube URL formats."""
     patterns = [
@@ -302,21 +383,35 @@ def enrich_words_with_isl_assets(words):
 
     for w in words:
         w_text = w.get("word", "").strip()
-        clean = re.sub(r"[^a-zA-Z]", "", w_text).upper()
+        clean = re.sub(r"[^a-zA-Z0-9]", "", w_text).upper()
         if not clean:
             continue
 
-        video_filename = f"{clean.lower()}.mp4"
-        has_video = os.path.exists(os.path.join(videos_dir, video_filename))
+        # Look up word aliases (e.g. YEAH -> YES, THANKS -> THANK_YOU, HI -> HELLO)
+        sign_key = WORD_ALIASES.get(clean, clean)
+        candidates = [
+            sign_key.lower().replace(" ", "_"),
+            sign_key.lower(),
+            clean.lower()
+        ]
+        video_filename = None
+        has_video = False
+        for c in candidates:
+            vfn = f"{c}.mp4"
+            if os.path.exists(os.path.join(videos_dir, vfn)):
+                video_filename = vfn
+                has_video = True
+                break
+
         video_url = f"/api/videos/{video_filename}" if has_video else None
 
-        sign_filename = f"{clean}.jpg"
+        sign_filename = f"{sign_key}.jpg" if os.path.exists(os.path.join(signs_dir, f"{sign_key}.jpg")) else f"{clean}.jpg"
         has_sign_card = os.path.exists(os.path.join(signs_dir, sign_filename))
         sign_card_url = f"/static/assets/signs/{sign_filename}" if has_sign_card else None
 
         letters = []
         for char in clean:
-            if char.isalpha():
+            if char.isalpha() or char.isdigit():
                 card_name = f"{char}.jpg"
                 has_char = os.path.exists(os.path.join(alpha_dir, card_name))
                 img_url = f"/static/signs/{card_name}" if has_char else f"/static/assets/signs/{card_name}"
@@ -327,7 +422,7 @@ def enrich_words_with_isl_assets(words):
 
         enriched.append({
             "word": w_text,
-            "clean": clean,
+            "clean": sign_key if has_video else clean,
             "start": round(float(w.get("start", 0)), 2),
             "end": round(float(w.get("end", 0)), 2),
             "confidence": round(float(w.get("confidence", 1.0)), 2),
@@ -455,88 +550,6 @@ def api_metrics():
     return jsonify({"error": "Metrics not found. Train the model first."}), 404
 
 # ----------------- Text to Sign Translation API -----------------
-
-# Initialize WORD_ALIASES with all vocabulary words in ISL_CLASSES
-WORD_ALIASES = {k: k for k, v in ISL_CLASSES.items() if v.get("category") == "word"}
-
-# Conversational synonyms & multi-lingual phonetic aliases
-WORD_ALIASES.update({
-    "HI": "HELLO",
-    "HEY": "HELLO",
-    "NAMASTE": "HELLO",
-    "THANKS": "THANK_YOU",
-    "THANK": "THANK_YOU",
-    "THANKYOU": "THANK_YOU",
-    "DHANYAWAD": "THANK_YOU",
-    "YEAH": "YES",
-    "YUP": "YES",
-    "HAAN": "YES",
-    "NOPE": "NO",
-    "NAHI": "NO",
-    "KRPAYA": "PLEASE",
-    "MADAD": "HELP",
-    "PANI": "WATER",
-    "PAANI": "WATER",
-    "KHANA": "FOOD",
-    "LOVE": "ILOVEYOU",
-    "PYAR": "ILOVEYOU",
-    "SWAGAT": "WELCOME",
-    "SWAGATAM": "WELCOME",
-    "MAAF": "SORRY",
-    "APOLOGY": "SORRY",
-    "BHARAT": "INDIA",
-    "HINDUSTAN": "INDIA",
-    "MOM": "MOTHER",
-    "MAA": "MOTHER",
-    "MATA": "MOTHER",
-    "DAD": "FATHER",
-    "PAPA": "FATHER",
-    "PITA": "FATHER",
-    "DOST": "FRIEND",
-    "MITRA": "FRIEND",
-    "DIDI": "SISTER",
-    "BEHEN": "SISTER",
-    "PATNI": "WIFE",
-    "VIDYALAYA": "SCHOOL",
-    "GURU": "TEACHER",
-    "SHIKSHAK": "TEACHER",
-    "CHATRA": "STUDENT",
-    "SIKHO": "LEARN",
-    "KAAM": "WORK",
-    "KHUSH": "HAPPY",
-    "GUSSA": "ANGRY",
-    "PEEYO": "DRINK",
-    "SONA": "SLEEP",
-    "AAJ": "TODAY",
-    "KAL": "TOMORROW",
-    "KAHAN": "WHERE",
-    "KYA": "WHAT",
-    "KYUN": "WHY",
-    "KAUN": "WHO",
-    "KAB": "WHEN",
-    "AAP": "YOU",
-    "TUM": "YOU",
-    "MERA": "MY",
-    "TERA": "YOUR",
-    "HUM": "WE",
-    "ABHI": "RIGHT_NOW",
-    "KITNE": "HOW_MANY",
-    # 2 and 3 word phrases
-    "GOOD_MORNING": "GOOD_MORNING",
-    "GOOD_AFTERNOON": "GOOD_AFTERNOON",
-    "GOOD_NIGHT": "GOOD_NIGHT",
-    "NICE_TO_MEET_YOU": "NICE_TO_MEET_YOU",
-    "SEE_YOU_TOMORROW": "SEE_YOU_TOMORROW",
-    "HOW_MANY": "HOW_MANY",
-    "WHAT_TIME": "WHAT_TIME",
-    "WHAT_HAPPENED": "WHAT_HAPPENED",
-    "RIGHT_NOW": "RIGHT_NOW",
-    "TIME_OUT": "TIME_OUT",
-    "BE_BRAVE": "BE_BRAVE",
-    "BE_BRAVE_ENOUGH": "BE_BRAVE_ENOUGH",
-    "EVERY_TIME": "EVERY_TIME",
-    "EXCUSE_ME": "EXCUSE_ME"
-})
 
 @app.route("/api/text_to_sign", methods=["POST"])
 def api_text_to_sign():
