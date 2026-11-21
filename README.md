@@ -91,8 +91,9 @@ Indian_Sign_Language_Projects/
 ├── app.py                             # Unified Flask Web Server, REST APIs & Live Detection Engine
 ├── run.bat                            # Windows interactive 1-click startup & processing launcher
 ├── requirements.txt                   # Core Python dependencies (Flask, OpenCV, MediaPipe, etc.)
-├── main.pdf                           # Compiled Master Thesis documentation & empirical report
-├── ISL_Thesis_Presentation.pptx       # Master Thesis Presentation (18 Widescreen Slides)
+├── Report.pdf                         # Compiled Master Thesis documentation & empirical report
+├── ISL_Thesis_Presentation.pptx       # Master Thesis Presentation (19 Widescreen Slides with References)
+├── ISL_Literature_References.xlsx     # Complete 18-paper literature survey & bibliographic reference sheet
 ├── .env.example                       # Environment template (DEEPGRAM_API_KEY, Flask configs)
 ├── Indian_Sign_Language_Pipeline.ipynb# Interactive ML pipeline notebook (executed with 45-class benchmarks)
 ├── Indian_Sign_Language_Pipeline.html # Standalone interactive HTML report of the ML pipeline
