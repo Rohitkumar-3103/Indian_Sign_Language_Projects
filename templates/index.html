@@ -525,6 +525,12 @@
                 <span id="yt-video-title" style="font-weight: 700; color: #fff; font-size: 0.95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 320px;">Video Player</span>
               </div>
               <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <button id="btn-yt-toggle-audio-mode" class="btn btn-outline btn-sm" title="Toggle between Video and Audio Mode" style="display: none; padding: 0.2rem 0.5rem; font-size: 0.72rem; border-color: rgba(99,102,241,0.4); color: #a5b4fc;">
+                  <i class="fa-solid fa-headphones"></i> <span id="yt-audio-mode-text">Audio Mode</span>
+                </button>
+                <a id="btn-yt-external-link" href="#" target="_blank" class="btn btn-outline btn-sm" title="Watch directly on YouTube" style="display: none; padding: 0.2rem 0.5rem; font-size: 0.72rem; color: #ef4444; border-color: rgba(239,68,68,0.4); text-decoration: none;">
+                  <i class="fa-brands fa-youtube"></i> YouTube <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 0.65rem;"></i>
+                </a>
                 <span id="yt-playback-timer" style="font-family: monospace; font-size: 0.82rem; color: #fbbf24; background: rgba(0,0,0,0.4); padding: 0.2rem 0.55rem; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1);">00:00 / 00:00</span>
                 <span id="yt-player-state-badge" class="badge" style="background: rgba(99,102,241,0.2); color: #c7d2fe; font-size: 0.7rem; padding: 0.2rem 0.5rem; border-radius: 4px;">Ready</span>
               </div>
@@ -535,9 +541,28 @@
               <div id="yt-iframe-container" style="width: 100%; height: 100%;">
                 <video id="yt-html5-player" playsinline controls style="width: 100%; height: 100%; object-fit: contain; display: none;"></video>
                 <div id="yt-player-target" style="width: 100%; height: 100%;"></div>
+
+                <!-- Resilient Audio Sync Fallback Overlay (Shown if video embed is restricted by creator) -->
+                <div id="yt-audio-fallback-card" style="display: none; width: 100%; height: 100%; background: radial-gradient(circle at center, #1e1b4b 0%, #090d16 100%); flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 1.5rem; position: absolute; top: 0; left: 0; z-index: 10;">
+                  <div style="width: 64px; height: 64px; border-radius: 50%; background: linear-gradient(135deg, rgba(99,102,241,0.25), rgba(239,68,68,0.25)); border: 2px solid rgba(99,102,241,0.5); display: flex; align-items: center; justify-content: center; margin-bottom: 0.75rem; box-shadow: 0 0 25px rgba(99,102,241,0.3);">
+                    <i class="fa-solid fa-headphones" style="font-size: 1.75rem; color: #818cf8;"></i>
+                  </div>
+                  <h4 style="color: #fff; font-size: 1.05rem; font-weight: 700; margin-bottom: 0.25rem;">Audio Sync Mode Active</h4>
+                  <p style="color: var(--text-muted); font-size: 0.8rem; max-width: 440px; line-height: 1.4; margin-bottom: 0.85rem;">
+                    Video owner disabled 3rd-party website embedding. <strong>Sign translation, timestamps, and gesture animations are 100% synchronized with the audio stream!</strong>
+                  </p>
+                  <div style="display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap; justify-content: center;">
+                    <a id="yt-audio-watch-direct" href="#" target="_blank" class="btn btn-primary btn-sm" style="background: #ef4444; border-color: #dc2626; padding: 0.35rem 0.85rem; font-size: 0.8rem; text-decoration: none; display: inline-flex; align-items: center; gap: 0.4rem;">
+                      <i class="fa-brands fa-youtube"></i> Watch on YouTube <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 0.65rem;"></i>
+                    </a>
+                    <button class="btn btn-outline btn-sm" id="btn-yt-retry-video" style="padding: 0.35rem 0.75rem; font-size: 0.8rem;">
+                      <i class="fa-solid fa-video"></i> Try Video Mode
+                    </button>
+                  </div>
+                </div>
               </div>
               <!-- Floating Live Subtitle Banner -->
-              <div id="yt-live-subtitle" style="position: absolute; bottom: 15px; left: 5%; right: 5%; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); padding: 0.45rem 1rem; border-radius: 8px; text-align: center; color: #f8fafc; font-size: 0.95rem; font-weight: 600; border: 1px solid rgba(255,255,255,0.15); pointer-events: none; transition: opacity 0.2s;">
+              <div id="yt-live-subtitle" style="position: absolute; bottom: 15px; left: 5%; right: 5%; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); padding: 0.45rem 1rem; border-radius: 8px; text-align: center; color: #f8fafc; font-size: 0.95rem; font-weight: 600; border: 1px solid rgba(255,255,255,0.15); pointer-events: none; transition: opacity 0.2s; z-index: 15;">
                 Play video to start translation
               </div>
             </div>
